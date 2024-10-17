@@ -10,40 +10,52 @@ type vector = float list
 Definirajte enotske vektorje `i`, `j` in `k` v treh dimenzijah.
 [*----------------------------------------------------------------------------*)
 
+let i = [1.; 0.; 0.]
+let j = [0.; 1.; 0.]
+let k = [0.; 0.; 1.]
 
 (*----------------------------------------------------------------------------*]
 Napišite funkcijo `razteg : float -> vector -> vector`, ki vektor, 
 predstavljen s seznamom števil s plavajočo vejico, pomnoži z danim skalarjem.
 [*----------------------------------------------------------------------------*)
 
-let rec razteg = ()
+let rec razteg x v = 
+  List.map (fun i -> i *. x) v 
 
 (*----------------------------------------------------------------------------*]
 Napišite funkcijo `sestej : vector -> vector -> vector`, ki vrne vsoto dveh 
 vektorjev.
 [*----------------------------------------------------------------------------*)
 
-let rec sestej = ()
+let rec sestej v u =
+  List.map2 (fun x y -> x +. y) v u
+
 
 (*----------------------------------------------------------------------------*]
 Napišite funkcijo `skalarni_produkt : vector -> vector -> float`, ki izračuna 
 skalarni produkt dveh vektorjev
 [*----------------------------------------------------------------------------*)
+let rec sestej l = match l with
+  | [] -> 0.0
+  | h::t -> h +. (sestej t);;
 
-let rec skalarni_produkt = ()
+let rec skalarni_produkt v u = 
+  sestej (List.map2 (fun x y -> x *. y) v u)
 
 (*----------------------------------------------------------------------------*]
 Napišite funkcijo `norma : vector -> float`, ki vrne evklidsko normo vektorja.
 [*----------------------------------------------------------------------------*)
 
-let rec norma = ()
+let rec norma v =
+  sqrt(skalarni_produkt v v)
 
 (*----------------------------------------------------------------------------*]
 Napišite funkcijo `projeciraj : vector -> vector -> vector`, ki izračuna 
 projekcijo prvega vektorja na drugega.
 [*----------------------------------------------------------------------------*)
 
-let rec projeciraj = ()
+let rec projeciraj v u = 
+  razteg (skalarni_produkt v u /. skalarni_produkt u u) v
 
 (*----------------------------------------------------------------------------*]
 Napišite funkcijo `ovij : string -> string -> string`, ki sprejme ime HTML 
@@ -54,7 +66,9 @@ Primer:
 
 [*----------------------------------------------------------------------------*)
 
-let rec ovij = ()
+let rec ovij z n = 
+  String.concat "" ["<"; z; ">"; n; "<"; z; "\>" ]
+
 
 (*----------------------------------------------------------------------------*]
 Napišite funkcijo `zamakni : int -> string -> string`, ki sprejme število 
@@ -65,7 +79,10 @@ Primer:
 
 [*----------------------------------------------------------------------------*)
 
-let rec zamakni = ()
+(* kle rabš še funkcijo za spodi*)   
+let rec zamakni x n =
+  String.concat "\n" (List.map (fun i -> "    " ^ i) (String.split_on_char '\n' n))
+  
 
 (*----------------------------------------------------------------------------*]
 Napišite funkcijo `ul : string list -> string`, ki sprejme seznam nizov in vrne 
