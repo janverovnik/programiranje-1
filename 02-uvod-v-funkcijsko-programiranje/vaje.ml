@@ -67,7 +67,7 @@ Primer:
 [*----------------------------------------------------------------------------*)
 
 let rec ovij z n = 
-  String.concat "" ["<"; z; ">"; n; "<"; z; "\>" ]
+  String.concat "" ["<"; z; ">"; n; "<"; z; "/>" ]
 
 
 (*----------------------------------------------------------------------------*]
@@ -79,9 +79,13 @@ Primer:
 
 [*----------------------------------------------------------------------------*)
 
-(* kle rabš še funkcijo za spodi*)   
+let rec dodaj_pre x n =
+  match x with
+  |0 -> n 
+  |_ -> " " ^ dodaj_pre (x - 1) n
+  
 let rec zamakni x n =
-  String.concat "\n" (List.map (fun i -> "    " ^ i) (String.split_on_char '\n' n))
+  String.concat "\n" (List.map (dodaj_pre x) (String.split_on_char '\n' n))
   
 
 (*----------------------------------------------------------------------------*]
@@ -103,8 +107,14 @@ Primer:
 `razdeli_vrstico "mleko, 2"`
 
 [*----------------------------------------------------------------------------*)
+let rec list_v_touple l =
+  match l with
+  |prvi :: drugi :: [] -> (prvi, drugi)
+  |_ -> ("ni", "tu")
+let rec razdeli_vrstico n = 
+  list_v_touple (String.split_on_char ',' n)
+  
 
-let rec razdeli_vrstico = ()
 
 (*----------------------------------------------------------------------------*]
 Napišite funkcijo `pretvori_v_seznam_parov : string -> (string * string) list`, 
