@@ -60,4 +60,21 @@ type polinom = int list
 
 (*Odstranjevanje odvečnih ničel*)
 
+let pocisti pol =
+  let rec puci sez =
+  (match sez with
+  |[] -> []
+  |prvi :: rep -> if prvi = 0 then puci(rep) else sez) in
+  puci (List.rev pol)
+  
+ (*Seštevanje*) 
 
+ let ( +++ ) pol1 pol2 =
+ let rec dodaj_nic n sez =
+  (match n with
+  |0 -> sez
+  |_ -> dodaj_nic (n - 1) sez @ [0]) in
+  let n = List.length pol1 - List.length pol2 in
+  if n > 0 
+    then pocisti(List.map2 (fun x y -> x + y) (dodaj_nic n pol2) pol1) 
+    else pocisti(List.map2 (fun x y -> x + y) (dodaj_nic n pol1) pol2) 
