@@ -107,15 +107,14 @@ Primer:
 `razdeli_vrstico "mleko, 2"`
 
 [*----------------------------------------------------------------------------*)
-let rec list_v_touple l =
+let rec strlist_v_touple l =
   match l with
-  |prvi :: drugi :: [] -> (prvi, drugi)
-  |_ -> ("ni", "tu")
+  |prvi :: drugi :: [] -> (String.trim prvi, String.trim drugi)
+  |_ -> ("ni", "vejice")
 let rec razdeli_vrstico n = 
-  list_v_touple (String.split_on_char ',' n)
+  strlist_v_touple (String.split_on_char ',' n)
   
-
-
+  
 (*----------------------------------------------------------------------------*]
 Napišite funkcijo `pretvori_v_seznam_parov : string -> (string * string) list`, 
 ki sprejme večvrstični niz, kjer je vsaka vrstica niz oblike 
@@ -126,7 +125,8 @@ Primer:
 
 [*----------------------------------------------------------------------------*)
 
-let rec pretvori_v_seznam_parov = ()
+let rec pretvori_v_seznam_parov n = 
+  List.map razdeli_vrstico (String.split_on_char '\n' n)
 
 (*----------------------------------------------------------------------------*]
 Napišite funkcijo `pretvori_druge_komponente : ('a -> 'b) -> (string * 'a) list -> (string * 'b) list`,
@@ -140,7 +140,8 @@ pretvori_druge_komponente String.length seznam
 
 [*----------------------------------------------------------------------------*)
 
-let rec pretvori_druge_komponente = ()
+let rec pretvori_druge_komponente f = 
+  List.map(fun (x, y) -> (x, f y))
 
 (*----------------------------------------------------------------------------*]
 Napišite funkcijo `izracunaj_skupni_znesek : string -> string -> float`, ki 
