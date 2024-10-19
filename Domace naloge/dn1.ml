@@ -24,15 +24,15 @@ let rec drop_while f sez =
 
 (*Funkcija filter_mapi*)
 
-let rec pomozna i f sez =
-  match sez with
-  |[] -> []
-  |prvi :: rep -> match f i prvi with
-    |None -> pomozna (i + 1) f rep
-    |Some x -> x :: pomozna (i + 1) f rep
-
 let filter_mapi f sez =
+  let rec pomozna i f sez =
+    (match sez with
+    |[] -> []
+    |prvi :: rep -> match f i prvi with
+      |None -> pomozna (i + 1) f rep
+      |Some x -> x :: pomozna (i + 1) f rep) in
   pomozna 0 f sez
+
 
 (*CURRY-HOWARDOV IZOMORFIZEM*)
 
