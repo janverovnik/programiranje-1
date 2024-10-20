@@ -62,19 +62,48 @@ type polinom = int list
 
 let pocisti pol =
   let rec puci sez =
-  (match sez with
-  |[] -> []
-  |prvi :: rep -> if prvi = 0 then puci(rep) else sez) in
-  puci (List.rev pol)
+    (match sez with
+    |[] -> []
+    |prvi :: rep -> if prvi = 0 then puci(rep) else sez) in
+  List.rev (puci (List.rev pol))
   
- (*Seštevanje*) 
+(*Seštevanje*)
+
+let rec dodaj_nic_d n sez =
+  match n with
+  |0 -> sez
+  |_ -> dodaj_nic_d (n - 1) sez @ [0]
 
  let ( +++ ) pol1 pol2 =
- let rec dodaj_nic n sez =
-  (match n with
-  |0 -> sez
-  |_ -> dodaj_nic (n - 1) sez @ [0]) in
   let n = List.length pol1 - List.length pol2 in
   if n > 0 
-    then pocisti(List.map2 (fun x y -> x + y) (dodaj_nic n pol2) pol1) 
-    else pocisti(List.map2 (fun x y -> x + y) (dodaj_nic n pol1) pol2) 
+    then pocisti(List.map2 (fun x y -> x + y) (dodaj_nic_d n pol2) pol1) 
+    else pocisti(List.map2 (fun x y -> x + y) (dodaj_nic_d (Int.abs n) pol1) pol2) 
+
+(*Množenje*)
+
+let rec dodaj_nic_l n sez =
+  match n with
+  |0 -> sez
+  |_ -> [0] @ dodaj_nic_l (n - 1) sez 
+
+let ( *** ) pol1 pol2 =
+  let posamezni m n sez =
+    dodaj_nic_l m (List.map (fun x -> n * x) sez) in
+  let rec mrow i pol1 pol2 =
+    match pol1 with
+    |[] -> []
+    |prvi :: rep -> posamezni i prvi pol2 +++ mrow (i + 1) rep pol2 in
+  mrow 0 pol1 pol2
+
+ (*Izračun vrednosti v točki*)
+
+ let vrednost pol x =
+  let posamezni m n x =
+    n * int_of_float((float_of_int x) ** (float_of_int m)) in
+  let rec mrow i pol x =
+    match pol with
+    |[] -> 0
+    |prvi :: rep -> posamezni i prvi x + mrow (i + 1) rep x in
+  mrow 0 pol x
+    
