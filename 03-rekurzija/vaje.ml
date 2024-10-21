@@ -4,7 +4,10 @@
  Definirajte pomožno funkcijo za obračanje seznamov.
 [*----------------------------------------------------------------------------*)
 
-let rec reverse = ()
+let rec reverse sez = 
+  match sez with
+  |[] -> []
+  |prvi :: rep -> reverse rep @ prvi :: []
 
 (*----------------------------------------------------------------------------*]
  Funkcija [repeat x n] vrne seznam [n] ponovitev vrednosti [x]. Za neprimerne
@@ -16,19 +19,25 @@ let rec reverse = ()
  - : string list = []
 [*----------------------------------------------------------------------------*)
 
-let rec repeat = ()
-
+let rec repeat a n =
+  if n < 1 then [] else a :: repeat a (n - 1)
+  
 (*----------------------------------------------------------------------------*]
  Funkcija [range] sprejme število in vrne seznam vseh celih števil od 0 do
  vključno danega števila. Za neprimerne argumente funkcija vrne prazen seznam.
  Funkcija je repno rekurzivna.
-Pri tem ne smete uporabbiti vgrajene funkcije [List.init].
+ Pri tem ne smete uporabiti vgrajene funkcije [List.init].
  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
  # range 10;;
  - : int list = [0; 1; 2; 3; 4; 5; 6; 7; 8; 9; 10]
 [*----------------------------------------------------------------------------*)
 
-let rec range = ()
+let range n = 
+  let rec aux n acc = 
+    match n with
+    |(-1) -> acc
+    |_ -> aux (n - 1) (n :: acc) in
+  aux n []
 
 (*----------------------------------------------------------------------------*]
  Funkcija [map f list] sprejme seznam [list] oblike [x0; x1; x2; ...] in
@@ -41,7 +50,10 @@ let rec range = ()
  - : int list = [2; 3; 4; 5; 6]
 [*----------------------------------------------------------------------------*)
 
-let rec map = ()
+let rec map f sez = 
+  match sez with
+  |[] -> []
+  |prvi :: rep -> f prvi :: map f rep
 
 (*----------------------------------------------------------------------------*]
  Časovna zahtevnost operatorja [@] je linearna v prvem argumentu, poskušajte 
@@ -49,7 +61,12 @@ let rec map = ()
  Pri tem ne smete uporabiti vgrajene funkcije [List.rev] ali [List.rev_append].
 [*----------------------------------------------------------------------------*)
 
-let rec reverse = ()
+let reverse1 sez =
+  let rec aux sez acc =
+    match sez with
+    |[] -> acc
+    |prvi :: rep -> aux rep (prvi :: acc) in
+  aux sez []
 
 (*----------------------------------------------------------------------------*]
  Funkcija [map_tlrec] je repno rekurzivna različica funkcije [map].
@@ -59,7 +76,12 @@ let rec reverse = ()
  - : int list = [2; 3; 4; 5; 6]
 [*----------------------------------------------------------------------------*)
 
-let rec map_tlrec = ()
+let map_tlrec f sez =
+  let rec aux f sez acc =
+    match sez with
+    |[] -> acc
+    |prvi :: rep -> aux f rep (acc @ [f prvi]) in
+  aux f sez []
 
 (*----------------------------------------------------------------------------*]
  Funkcija [mapi] je ekvivalentna python kodi:
@@ -78,7 +100,12 @@ let rec map_tlrec = ()
  - : int list = [0; 1; 2; 5; 6; 7]
 [*----------------------------------------------------------------------------*)
 
-let rec mapi = ()
+let mapi f sez = 
+  let rec aux i f sez acc =
+    match sez with
+    |[] -> acc
+    |prvi :: rep -> aux (i + 1) f rep (acc @ [f prvi i]) in
+  aux 0 f sez []
 
 (*----------------------------------------------------------------------------*]
  Funkcija [zip] sprejme dva seznama in vrne seznam parov istoležnih
@@ -91,7 +118,10 @@ let rec mapi = ()
  Exception: Failure "Different lengths of input lists.".
 [*----------------------------------------------------------------------------*)
 
-let rec zip = ()
+(*let rec zip sez1 sez2 =
+  let rec aux sez1 sez2 acc = *)
+
+
 
 (*----------------------------------------------------------------------------*]
  Funkcija [unzip] je inverz funkcije [zip], torej sprejme seznam parov
