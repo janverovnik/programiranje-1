@@ -36,24 +36,50 @@ let filter_mapi f sez =
   pomozna 0 f sez
 
 
-(*CURRY-HOWARDOV IZOMORFIZEM*)
+(*IZOMORFIZMI MNOŽIC*)
 
 type ('a, 'b) sum = In1 of 'a | In2 of 'b
 
-let phi1 (a, b) = (b, a)
-let psi1 (c, d) = (d, c)
+let phi1 = fun (a, b) -> (b, a)
+let psi1 = fun (c, d) -> (d, c) (*let psi1=phi1*)
 
-let phi3 ((a, b), c) = (a, (b, c))
-let psi3 (d, (e, f)) = ((d, e), f)
+let phi2 =
+  function
+  |In1 sum -> In2 sum
+  |In2 sum -> In1 sum
+let psi2 = phi2
 
-let phi7 f = (fun c -> fst (f c), fun c -> snd (f c))
+let phi3 = fun ((a, b), c) -> (a, (b, c))
+let psi3 = fun (d, (e, f)) -> ((d, e), f)
+
+let phi4 =
+  function
+  |In1 sum -> In1 (In1 sum)
+  |In2 (In1 sum) -> In1 (In2 sum)
+  |In2 (In2 sum) -> In2 sum
+let psi4 =
+  function
+  |In1 (In1 sum) -> In1 sum
+  |In1 (In2 sum) -> In2 (In1 sum)
+  |In2 sum -> In2 (In1 sum)
+
+let phi5 =
+  function
+  |(a, In1 sum) -> In1 (a, sum)
+  |(a, In2 sum) -> In2 (a, sum)
+let psi5 =
+  function
+  |In1 (a, sum) -> (a, In1 sum)
+  |In2 (a, sum) -> (a, In2 sum)
+
+let phi6 f = ((fun sum -> f (In1 sum)), (fun sum -> f (In2 sum)))
+let psi6 (f, g) =  
+  function
+  |In1 sum -> f sum
+  |In2 sum -> g sum
+
+let phi7 f = ((fun c -> fst (f c)), (fun c -> snd (f c)))
 let psi7 (f, g) = fun c -> (f c, g c)
-
-
-
-
-
-
 
 
 (*POLINOMI*)
@@ -121,6 +147,13 @@ let odvod : polinom -> polinom = fun pol ->
 
 (*Lep izpis*)
 
+(* let change_into_super n kljuc = 
+  let rec aux i n acc kljuc =
+    match i with
+    |(-1) -> acc
+    |_ -> aux (i - 1) n (String.make 1 kljuc.[int_of_char (string_of_int n).[i]] ^ acc) kljuc in  
+  aux (String.length (string_of_int n) - 1) n "" kljuc *)
+
 let izpis : polinom -> string = fun pol -> 
   let rec aux i pol acc =
     match pol with
@@ -148,12 +181,12 @@ let izpis : polinom -> string = fun pol ->
           (if rep = [] then 
             (if i = 0 then string_of_int prvi else
              if i = 1 then ((string_of_int prvi) ^ " x" ^ acc) else
-              (string_of_int prvi) ^ " x^" ^ (string_of_int i) ^ acc)
-            else
-          if i = 0 then aux (i + 1) rep (" + " ^ (string_of_int prvi) ^ acc) else 
+              (string_of_int prvi) ^ " x^" ^ (string_of_int i) ^ acc) else
+            if i = 0 then aux (i + 1) rep (" + " ^ (string_of_int prvi) ^ acc) else 
           if i = 1 then aux (i + 1) rep (" + " ^ (string_of_int prvi) ^ " x" ^ acc) else
           aux (i + 1) rep (" + " ^ (string_of_int prvi) ^ " x^" ^ (string_of_int i) ^ acc)) in
   aux 0 pol ""
+
 
 (*SAMODEJNO ODVAJANJE*)
 
