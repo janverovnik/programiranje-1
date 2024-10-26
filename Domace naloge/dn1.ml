@@ -226,22 +226,11 @@ let crka i = Char.chr (i + Char.code 'A')
 (*Šifriranje*)
 
 let sifriraj kljuc niz =
-  let rec aux i kljuc niz acc =
-    match i with 
-    |(-1) -> acc
-    |_ -> if (-1) < indeks (niz.[i]) && indeks (niz.[i]) < 26 then 
-          aux (i - 1) kljuc niz ((String.make 1  kljuc.[indeks (niz.[i])]) ^ acc) else 
-          aux (i - 1) kljuc niz (String.make 1 (niz.[i]) ^ acc) in
-  aux (String.length niz - 1) kljuc niz ""
+  String.map (fun char -> if (-1) < indeks char && indeks char < 26 then kljuc.[indeks char] else char) niz
           
 (*Inverzni ključ*)
-
 let inverz kljuc =
-  let rec aux i kljuc acc =
-    match i with
-    |(-1) -> acc
-    |_ -> aux (i - 1) kljuc (String.make 1 (crka (String.index kljuc (crka i))) ^ acc) in
-  aux (String.length kljuc - 1) kljuc ""
+  String.mapi (fun i char -> crka (String.index kljuc(crka i)))
 
 (*Ugibanje ključa*)
 
@@ -288,4 +277,19 @@ let mozne_razsiritve kljuc bes slo =
 
 (*Odšifriranje*)
 
-
+let odsifriraj niz =
+  let kljuc = String.make 26 '_' in
+  let list2 = List.map (fun bes -> mozne_razsiritve kljuc bes slovar) (List.map (String.trim) (String.split_on_char ' ' niz)) in
+  let ta_je_v_vsakem a sez_sez =
+      List.for_all (fun sez -> List.exists (fun x -> x = a) sez) sez_sez in
+  match list2 with
+  |[] -> None
+  |prvi_list :: ostali ->
+        let rec preveri sez =
+        match prvi_list with
+        |[] -> None
+        |prvi :: rep -> if ta_je_v_vsakem prvi ostali then Some (sifriraj prvi niz) else preveri rep in
+      preveri prvi_list
+    
+    
+  
