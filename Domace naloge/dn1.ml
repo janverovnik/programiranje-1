@@ -229,7 +229,7 @@ let sifriraj kljuc niz =
   let rec aux i kljuc niz acc =
     match i with 
     |(-1) -> acc
-    |_ -> if (-1) < indeks (niz.[i]) && indeks (niz.[i]) < String.length niz then 
+    |_ -> if (-1) < indeks (niz.[i]) && indeks (niz.[i]) < 26 then 
           aux (i - 1) kljuc niz ((String.make 1  kljuc.[indeks (niz.[i])]) ^ acc) else 
           aux (i - 1) kljuc niz (String.make 1 (niz.[i]) ^ acc) in
   aux (String.length niz - 1) kljuc niz ""
@@ -264,4 +264,28 @@ let dodaj_zamenjavo kljuc (a, b) =
   Some (zamenjaj_ati kljuc (a, b))
   
 (*Razširjanje ključa z besedo*)
+
+let dodaj_zamenjave kljuc (bes1, bes2) =
+  if String.length bes1 <> String.length bes2 then None else
+  let rec pomozna i kljuc (bes1, bes2) =
+    match i with 
+    |(-1) -> Some kljuc
+    |_ -> match dodaj_zamenjavo kljuc (bes1.[i], bes2.[i]) with 
+          |Some x -> pomozna (i - 1) x (bes1, bes2)
+          |None -> None in
+  pomozna (String.length bes1 - 1) kljuc (bes1, bes2)
+
+(*Vse možne razširitve*)
+
+let mozne_razsiritve kljuc bes slo =
+  let rec aux kljuc bes slo acc =
+    match slo with
+    |[] -> acc
+    |prvi :: rep -> match dodaj_zamenjave kljuc (bes, prvi) with
+                    |Some x -> aux kljuc bes rep (x :: acc)  
+                    |None -> aux kljuc bes rep acc in
+  List.rev (aux kljuc bes slo [])
+
+(*Odšifriranje*)
+
 
