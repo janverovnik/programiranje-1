@@ -277,19 +277,20 @@ let mozne_razsiritve kljuc bes slo =
 
 (*Odšifriranje*)
 
-let odsifriraj niz =
+(* let odsifriraj niz =
   let kljuc = String.make 26 '_' in
   let list2 = List.map (fun bes -> mozne_razsiritve kljuc bes slovar) (List.map (String.trim) (String.split_on_char ' ' niz)) in
-  let ta_je_v_vsakem a sez_sez =
-      List.for_all (fun sez -> List.exists (fun x -> x = a) sez) sez_sez in
+  let rec preveri kljuc list_kljucev acc =
+    match list_kljucev with
   match list2 with
   |[] -> None
   |prvi_list :: ostali ->
-        let rec preveri sez =
-        match prvi_list with
-        |[] -> None
-        |prvi :: rep -> if ta_je_v_vsakem prvi ostali then Some (sifriraj prvi niz) else preveri rep in
-      preveri prvi_list
+    let rec najdi_kljuc sez acc =
+      match sez with
+      |[] -> acc
+      |prvi_kljuc :: rep -> match dodaj_zamenjave *)
+
+        
     
     
   
