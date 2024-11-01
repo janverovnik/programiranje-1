@@ -260,7 +260,7 @@ let primer_3_3 = [1; -2; 3] +++ [1; 2; -3]
  polinoma.
 [*----------------------------------------------------------------------------*)
 
-llet rec dodaj_nic_l n sez =
+let rec dodaj_nic_l n sez =
   match n with
   |0 -> sez
   |_ -> [0] @ dodaj_nic_l (n - 1) sez 
@@ -329,13 +329,6 @@ let primer_3_7 = odvod [1; -2; 3]
  primer, `izpis [1; -2; 3]` vrne `"3 x^2 - 2 x + 1"` oziroma še bolje kot `"3 x²
  - 2 x + 1"`. Pozorni bodite, da izpis začnete z vodilnim členom.
 [*----------------------------------------------------------------------------*)
-
-(* let change_into_super n kljuc = 
-  let rec aux i n acc kljuc =
-    match i with
-    |(-1) -> acc
-    |_ -> aux (i - 1) n (String.make 1 kljuc.[int_of_char (string_of_int n).[i]] ^ acc) kljuc in  
-  aux (String.length (string_of_int n) - 1) n "" kljuc *) (* <- String.length "⁰¹²³⁴⁵⁶⁷⁸⁹" = 27 :( *)
 
 let izpis : polinom -> string = fun pol -> 
   let rec aux i pol acc =
@@ -720,7 +713,36 @@ let primer_5_15 =
  vrne `None`, če ni mogoče najti nobenega ustreznega ključa.
 [*----------------------------------------------------------------------------*)
 
-let odsifriraj _ = ()
+ let odsifriraj niz =
+  let rec preveri kljuc bes sez =
+    match sez with
+    |[] -> None
+    |prvi :: rep -> match dodaj_zamenjave kljuc (prvi, bes) with 
+                    |None -> preveri kljuc bes rep
+                    |Some x -> Some x in
+  let kljuc1 = String.make 26 '_' in
+  let list1 = (List.map (String.trim) (String.split_on_char ' ' niz)) in
+  match list1 with
+  |[] -> None
+  |[""] -> Some ""
+  |bes :: rep -> 
+    let kl_list = mozne_razsiritve kljuc1 bes slovar in
+    let bes_list_list = List.map (fun (list_kljucev, bes) -> (List.map (fun kljuc -> sifriraj kljuc bes) list_kljucev, bes)) (List.map (fun (bes, bes1) -> ((mozne_razsiritve (String.make 26 '_') bes slovar), bes1)) (List.map (fun x -> (x, x)) rep)) in
+    let rec pomozna1 kl_list =
+      match kl_list with
+      |[] -> None
+      |kl_prvi :: kl_rep ->
+        let rec pomozna2 kljuc sez =
+          match sez with
+          |[] -> None
+          |(prvi_sez, prva_bes) :: ostalo -> 
+            match preveri kljuc prva_bes prvi_sez with
+            |None -> None
+            |Some x -> pomozna2 x ostalo in
+        match pomozna2 kl_prvi bes_list_list with
+        |None -> pomozna1 kl_rep
+        |Some kljuc -> Some (sifriraj kljuc niz) in
+    pomozna1 kl_list
 
 let primer_5_16 = sifriraj quick_brown_fox "THIS IS A VERY HARD PROBLEM"
 (* val primer_5_16 : string = "VKBO BO T AUSD KTSQ MSJHNUF" *)

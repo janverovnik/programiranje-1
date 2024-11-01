@@ -147,12 +147,13 @@ let odvod : polinom -> polinom = fun pol ->
 
 (*Lep izpis*)
 
-(* let change_into_super n kljuc = 
-  let rec aux i n acc kljuc =
+(*let change_into_super n = 
+  let klist = ["⁰"; "¹"; "²"; "³"; "⁴"; "⁵"; "⁶"; "⁷"; "⁸"; "⁹"] in
+  let rec aux i n acc list =
     match i with
     |(-1) -> acc
-    |_ -> aux (i - 1) n (String.make 1 kljuc.[int_of_char (string_of_int n).[i]] ^ acc) kljuc in  
-  aux (String.length (string_of_int n) - 1) n "" kljuc *) (* <- String.length "⁰¹²³⁴⁵⁶⁷⁸⁹" = 27 :( *)
+    |_ -> aux (i - 1) n ((List.nth list (int_of_char (string_of_int n).[i])) ^ acc) list in
+  aux (String.length (string_of_int n) - 1) n "" klist *)
 
 let izpis : polinom -> string = fun pol -> 
   let rec aux i pol acc =
@@ -277,18 +278,7 @@ let mozne_razsiritve kljuc bes slo =
 
 (*Odšifriranje*)
 
-(* let odsifriraj niz =
-  let kljuc = String.make 26 '_' in
-  let list2 = List.map (fun bes -> mozne_razsiritve kljuc bes slovar) (List.map (String.trim) (String.split_on_char ' ' niz)) in
-  let rec preveri kljuc list_kljucev acc =
-    match list_kljucev with
-  match list2 with
-  |[] -> None
-  |prvi_list :: ostali ->
-    let rec najdi_kljuc sez acc =
-      match sez with
-      |[] -> acc
-      |prvi_kljuc :: rep -> match dodaj_zamenjave *)
+
 
         
     
