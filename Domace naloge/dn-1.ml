@@ -17,6 +17,7 @@
 [*----------------------------------------------------------------------------*)
 
 let rec stevke b n =
+  if b = 1 then List.init n (fun x -> 0) else
   let y = n / b in 
   match y with
   |0 -> n mod b :: []
@@ -87,13 +88,13 @@ let primer_1_7 = drop_while (fun x -> x < 5) [9; 8; 7; 6; 5; 4; 3; 2; 1; 0]
 [*----------------------------------------------------------------------------*)
 
 let filter_mapi f sez =
-  let rec pomozna i f sez =
+  let rec pomozna i f sez acc =
     match sez with
-    |[] -> []
+    |[] -> acc
     |prvi :: rep -> match f i prvi with
-      |None -> pomozna (i + 1) f rep
-      |Some x -> x :: pomozna (i + 1) f rep in
-  pomozna 0 f sez
+      |None -> pomozna (i + 1) f rep acc
+      |Some x -> pomozna (i + 1) f rep (x :: acc)in
+  List.rev(pomozna 0 f sez [])
 
 let primer_1_8 =
   filter_mapi
@@ -216,11 +217,7 @@ type polinom = int list
 [*----------------------------------------------------------------------------*)
 
 let pocisti : polinom -> polinom = fun pol ->
-  let rec puci sez =
-    (match sez with
-    |[] -> []
-    |prvi :: rep -> if prvi = 0 then puci(rep) else sez) in
-  List.rev (puci (List.rev pol))
+  List.rev (drop_while (fun x -> x = 0) (List.rev pol))
 
 let primer_3_1 = pocisti [1; -2; 3; 0; 0]
 (* val primer_3_1 : int list = [1; -2; 3] *)
@@ -289,16 +286,14 @@ let primer_3_5 = [1; 1] *** [1; -1]
  polinoma v danem argumentu.
 [*----------------------------------------------------------------------------*)
 
-let vrednost : polinom -> int -> int = fun pol x ->
-  let posamezni m n x =
-    n * int_of_float((float_of_int x) ** (float_of_int m)) in
-  let rec mrow i pol x =
+let vrednost1 : polinom -> int -> int = fun pol x -> (*ena vrednost je tud pr polinomih >:|*)
+  let rec mrow i pol x acc =
     match pol with
-    |[] -> 0
-    |prvi :: rep -> posamezni i prvi x + mrow (i + 1) rep x in
-  mrow 0 pol x
+    |[] -> acc
+    |prvi :: rep -> mrow (i + 1) rep x (prvi * int_of_float((float_of_int x) ** (float_of_int i)) + acc) in
+  mrow 0 pol x 0
 
-let primer_3_6 = vrednost [1; -2; 3] 2
+let primer_3_6 = vrednost1 [1; -2; 3] 2
 (* val primer_3_6 : int = 9 *)
 
 (*----------------------------------------------------------------------------*
@@ -340,19 +335,27 @@ let izpis : polinom -> string = fun pol ->
       |_ -> if prvi = 1 then 
           (if rep = [] then 
             (if i = 0 then "1" else
-             if i = 1 then ("- " ^ "x" ^ acc) else
-              "- " ^ "x^" ^ (string_of_int i) ^ acc) else
+             if i = 1 then ("x" ^ acc) else
+              "x^" ^ (string_of_int i) ^ acc) else
             if i = 0 then aux (i + 1) rep (" + 1" ^ acc) else 
           if i = 1 then aux (i + 1) rep (" + " ^ "x" ^ acc) else
-          aux (i + 1) rep (" + " ^ "x^" ^ (string_of_int i) ^ acc)) 
+          aux (i + 1) rep (" + " ^ "x^" ^ (string_of_int i) ^ acc))
+        else if prvi = -1 then
+          (if rep = [] then 
+            (if i = 0 then "- 1" else
+             if i = 1 then ("x" ^ acc) else
+              "x^" ^ (string_of_int i) ^ acc) else
+            if i = 0 then aux (i + 1) rep (" - 1" ^ acc) else 
+          if i = 1 then aux (i + 1) rep (" - " ^ "x" ^ acc) else
+          aux (i + 1) rep (" - " ^ "x^" ^ (string_of_int i) ^ acc))
         else if prvi < 0 then  
           (if rep = [] then 
-            (if i = 0 then "- " ^ string_of_int prvi else
-             if i = 1 then ("- " ^ (string_of_int prvi) ^ " x" ^ acc) else
-              "- " ^ (string_of_int prvi) ^ " x^" ^ (string_of_int i) ^ acc) else
-            if i = 0 then aux (i + 1) rep (" - " ^ (string_of_int prvi) ^ acc) else 
-          if i = 1 then aux (i + 1) rep (" - " ^ (string_of_int prvi) ^ " x" ^ acc) else
-          aux (i + 1) rep (" - " ^ (string_of_int prvi) ^ " x^" ^ (string_of_int i) ^ acc))
+            (if i = 0 then "- " ^ string_of_int (abs prvi) else
+             if i = 1 then ("- " ^ (string_of_int (abs prvi)) ^ " x" ^ acc) else
+              "- " ^ (string_of_int (abs prvi)) ^ " x^" ^ (string_of_int i) ^ acc) else
+            if i = 0 then aux (i + 1) rep (" - " ^ (string_of_int (abs prvi)) ^ acc) else 
+          if i = 1 then aux (i + 1) rep (" - " ^ (string_of_int (abs prvi)) ^ " x" ^ acc) else
+          aux (i + 1) rep (" - " ^ (string_of_int (abs prvi)) ^ " x^" ^ (string_of_int i) ^ acc))
         else
           (if rep = [] then 
             (if i = 0 then string_of_int prvi else
@@ -554,7 +557,7 @@ let primer_5_3 = "VENI, VIDI, VICI" |> sifriraj rot13 |> sifriraj rot13
 [*----------------------------------------------------------------------------*)
 
 let inverz kljuc =
-  String.mapi (fun i char -> crka (String.index kljuc(crka i)))
+  String.mapi (fun i char -> crka (String.index kljuc (crka i))) kljuc
 
 let primer_5_4 = inverz quick_brown_fox
 (* val primer_5_4 : string = "VIGYCMZBFOHUPLSQDJRAETKNXW" *)
