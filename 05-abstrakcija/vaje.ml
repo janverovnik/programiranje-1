@@ -17,12 +17,14 @@
 
 module type NAT = sig
   type t
-
   val eq  : t -> t -> bool
   val zero : t
-  (* Dodajte manjkajoče! *)
-  (* val to_int : t -> int *)
-  (* val of_int : int -> t *)
+  val enka : t
+  val ( +++ ) : t -> t -> t
+  val ( --- ) : t -> t -> t
+  val ( *** ) : t -> t -> t
+  val to_int : t -> int 
+  val of_int : int -> t 
 end
 
 (*----------------------------------------------------------------------------*
@@ -36,9 +38,14 @@ end
 module Nat_int : NAT = struct
 
   type t = int
-  let eq x y = failwith "later"
+  let eq x y = x = y
   let zero = 0
-  (* Dodajte manjkajoče! *)
+  let enka = 1
+  let ( +++ ) x y = x + y
+  let ( --- ) x y = if x < y then failwith "Negativno ni v redu." else x - y
+  let ( *** ) x y = x * y
+  let to_int x = x
+  let of_int x = x
 
 end
 
@@ -52,12 +59,45 @@ end
 [*----------------------------------------------------------------------------*)
 
 module Nat_peano : NAT = struct
+  type t = 
+  |Nic
+  |Naslednik of t
 
-  type t = unit (* To morate spremeniti! *)
-  let eq x y = failwith "later"
-  let zero = () (* To morate spremeniti! *)
-  (* Dodajte manjkajoče! *)
+  let rec eq x y = match x, y with
+  |Nic, Nic -> true
+  |_, Nic -> false
+  |Nic, _ -> false
+  |Naslednik xx, Naslednik yy -> eq xx yy
 
+  let zero = Nic
+  let enka = Naslednik (Nic)
+
+  let rec ( +++ ) x y = match x with
+  |Nic -> y
+  |Naslednik xx -> Naslednik (xx +++ y)
+
+  let rec ( --- ) x y = match x, y with
+  |Nic, _ -> failwith "negativen svet ni ok!"
+  |_, Nic -> x
+  |Naslednik xx, Naslednik yy -> xx --- yy
+
+  let ( *** ) x y = 
+    let rec aux x y acc = match y with
+    |Nic -> acc
+    |Naslednik yy -> aux x yy (x +++ acc) in
+  aux x y Nic
+
+  let to_int x = 
+    let rec aux x acc = match x with
+    |Nic -> acc
+    |Naslednik xx -> aux xx (acc + 1) in
+  aux x 0
+
+  let of_int x = 
+    let rec aux x acc = match x with
+    |0 -> acc
+    |_ -> aux (x - 1) (Naslednik (acc)) in 
+  aux x Nic
 end
 
 (*----------------------------------------------------------------------------*
@@ -76,11 +116,15 @@ end
  `Nat`.
 [*----------------------------------------------------------------------------*)
 
-let sum_nat_100 = 
+let sum_nat_100 (module Nat : NAT) = 
   (* let module Nat = Nat_int in *)
   let module Nat = Nat_peano in
-  Nat.zero (* to popravite na ustrezen izračun *)
-  (* |> Nat.to_int *)
+  let rec aux i acc = match i with 
+    |101 -> acc
+    |_ -> aux (i + 1) (Nat.( +++ ) acc (Nat.of_int(i))) in
+  Nat.to_int(aux 0 Nat.zero)
+  
+
 (* val sum_nat_100 : int = 5050 *)
 
 (*----------------------------------------------------------------------------*
@@ -135,7 +179,13 @@ let sum_nat_100 =
 module type COMPLEX = sig
   type t
   val eq : t -> t -> bool
-  (* Dodajte manjkajoče! *)
+  val zero : t
+  val enka : t
+  val konst_i : t
+  val negacija : t -> t
+  val konjugacija : t -> t
+  val ( +++ ) : t -> t -> t
+  val ( *** ) : t -> t -> t
 end
 
 (*----------------------------------------------------------------------------*
@@ -144,12 +194,15 @@ end
 [*----------------------------------------------------------------------------*)
 
 module Cartesian : COMPLEX = struct
-
   type t = {re : float; im : float}
-
-  let eq x y = failwith "later"
-  (* Dodajte manjkajoče! *)
-
+  let eq x y = x.re = y.re && x.im = y.im
+  let zero = {re = 0.; im = 0.}
+  let enka = {re = 1.; im = 0.}
+  let konst_i = {re = 0.; im = 1.}
+  let negacija x = {re = -.x.re; im = -.x.im}
+  let konjugacija x = {re = x.re; im = -.x.im}
+  let ( +++ ) x y = {re = x.re +. y.re; im = x.im +. y.re}
+  let ( *** ) x y = {re = x.re *. y.re -. x.im *. y.im; im = x.re *. y.re +. x.re *. y.re}
 end
 
 (*----------------------------------------------------------------------------*
@@ -160,15 +213,17 @@ end
 [*----------------------------------------------------------------------------*)
 
 module Polar : COMPLEX = struct
-
   type t = {magn : float; arg : float}
-
-  (* Pomožne funkcije za lažje življenje. *)
   let pi = 2. *. acos 0.
   let rad_of_deg deg = (deg /. 180.) *. pi
   let deg_of_rad rad = (rad /. pi) *. 180.
 
-  let eq x y = failwith "later"
-  (* Dodajte manjkajoče! *)
-
+  let eq x y = x.magn = y.magn && x.arg = y.arg
+  let zero = {magn = 0.; arg = 0.}
+  let enka = {magn = 1.; arg = 0.}
+  let konst_i = {magn = 1.; arg = pi}
+  let negacija x = {magn = x.magn; arg = x.arg +. pi}
+  let konjugacija x = {magn = x.magn; arg = -.x.arg}
+  let ( +++ ) x y = failwith "later"
+  let ( *** ) x y = {magn = x.magn *. y.magn; arg = x.magn +. y.magn}
 end
