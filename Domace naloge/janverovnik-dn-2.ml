@@ -39,7 +39,7 @@
  procesorja **A**, **B**, **C** in **D**.
 [*----------------------------------------------------------------------------*)
 
-type register 
+type register = A | B | C | D
 
 (* let primer_tipi_1 = [[A; B; B; A]; [A; C; D; C]] *)
 (* val primer_tipi_1 : register list list = [[A; B; B; A]; [A; C; D; C]] *)
@@ -55,7 +55,9 @@ type register
  registri ali števila.
 [*----------------------------------------------------------------------------*)
 
-type expression 
+type expression =
+|Register of register
+|Const of int
 
 (* let primer_tipi_2 = [Register B; Const 42] *)
 (* val primer_tipi_2 : expression list = [Register B; Const 42] *)
@@ -71,7 +73,8 @@ type expression
  tip z eno samo varianto `Address` s celoštevilskim argumentom.
 [*----------------------------------------------------------------------------*)
 
-type address 
+type address =
+|Adress of int
 
 (* let primer_tipi_3 = (42, Address 42) *)
 (* val primer_tipi_3 : int * address = (42, Address 42) *)
@@ -119,24 +122,24 @@ type address
 
 type instruction =
   | MOV of register * expression
-  (* | ADD of TODO *)
-  (* | SUB of TODO *)
+  | ADD of register * expression
+  | SUB of register * expression
   | INC of register
-  (* | DEC of TODO *)
-  (* | MUL of TODO *)
+  | DEC of register
+  | MUL of expression
   | DIV of expression
-  (* | AND of TODO *)
-  (* | OR of TODO *)
-  (* | XOR of TODO *)
-  (* | NOT of TODO *)
-  (* | CMP of TODO *)
+  | AND of register * expression
+  | OR of register * expression
+  | XOR of register * expression
+  | NOT of register
+  | CMP of register * expression
   | JMP of address
-  (* | JA of TODO *)
-  (* | JAE of TODO *)
-  (* | JB of TODO *)
-  (* | JBE of TODO *)
-  (* | JE of TODO *)
-  (* | JNE of TODO *)
+  | JA of address
+  | JAE of address
+  | JB of address
+  | JBE of address
+  | JE of address
+  | JNE of address
   | CALL of address
   | RET
   | PUSH of expression
