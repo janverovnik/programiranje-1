@@ -74,7 +74,7 @@ type expression =
 [*----------------------------------------------------------------------------*)
 
 type address =
-|Adress of int
+|Address of int
 
 (* let primer_tipi_3 = (42, Address 42) *)
 (* val primer_tipi_3 : int * address = (42, Address 42) *)
@@ -237,7 +237,7 @@ type instruction =
  - `stack`: seznam celoštevilskih vrednosti na skladu.
 [*----------------------------------------------------------------------------*)
 
-type state 
+type state = {instructions : instruction array; a : int; b : int; c : int; d : int; ip : address; zero : bool; carry : bool; stack : int list}
 
 (* let primer_tipi_6 = {
   instructions = [| MOV (A, Register B); MOV (C, Const 42); JA (Address 10); HLT |];
@@ -283,7 +283,8 @@ type state
  seznama v tabelo pomagate z uporabo funkcije `Array.of_list`.
 [*----------------------------------------------------------------------------*)
 
-let init _ = ()
+let init inst_list =
+  {instructions = Array.of_list inst_list; a = 0; b = 0; c = 0; d = 0; ip = Address 0; zero = false; carry = false; stack = []}
 
 (* let primer_tipi_7 = init [ MOV (A, Register B); MOV (C, Const 42); JA (Address 10); HLT ] *)
 (* val primer_tipi_7 : state =
@@ -311,7 +312,11 @@ let init _ = ()
  funkcija vrne `None`.
 [*----------------------------------------------------------------------------*)
 
-let read_instruction _ = ()
+let read_instruction state = 
+  let array1 = state.instructions in
+  match state.ip with
+  |Address x -> 
+  if Array.length array1 < x then None else Some array1.(x)
 
 (* let primer_izvajanje_1 =
   [
@@ -327,8 +332,12 @@ let read_instruction _ = ()
  registra v danem stanju.
 [*----------------------------------------------------------------------------*)
 
-let read_register _ _ = ()
-
+let read_register state reg = 
+  match reg with  
+  |A -> state.a
+  |B -> state.b
+  |C -> state.c
+  |D -> state.d
 (* let primer_izvajanje_2 =
   read_register { empty with a = 10; b = 42 } B *)
 (* val primer_izvajanje_2 : int = 42 *)
@@ -338,7 +347,10 @@ let read_register _ _ = ()
  celoštevilsko vrednost izraza v danem stanju.
 [*----------------------------------------------------------------------------*)
 
-let read_expression _ _ = ()
+let read_expression state exp = 
+  match exp with
+  |Register x -> read_register state x
+  |Const n -> n
 
 (* let primer_izvajanje_3 =
   read_expression { empty with a = 10; b = 20 } (Register B) *)
@@ -358,7 +370,11 @@ let read_expression _ _ = ()
  novo stanje.
 [*----------------------------------------------------------------------------*)
 
-let write_register _ _ _ = ()
+let write_register state reg n = match reg with
+  |A -> {instructions = state.instructions; a = n; b = state.b; c = state.c; d = state.d; ip = state.ip; zero = state.zero; carry = state.carry; stack = state.stack }
+  |B -> {instructions = state.instructions; a = state.a; b = n; c = state.c; d = state.d; ip = state.ip; zero = state.zero; carry = state.carry; stack = state.stack }
+  |C -> {instructions = state.instructions; a = state.a; b = state.b; c = n; d = state.d; ip = state.ip; zero = state.zero; carry = state.carry; stack = state.stack }
+  |D -> {instructions = state.instructions; a = state.a; b = state.b; c = state.c; d = n; ip = state.ip; zero = state.zero; carry = state.carry; stack = state.stack }
 
 (* let primer_izvajanje_5 =
   write_register { empty with c = 42 } D 24 *)
