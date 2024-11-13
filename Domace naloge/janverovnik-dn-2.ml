@@ -260,7 +260,7 @@ type state = {instructions : instruction array; a : int; b : int; c : int; d : i
  Prazno stanje pomnilnika lahko predstavimo z zapisom:
 [*----------------------------------------------------------------------------*)
 
-(* let empty = {
+let empty = {
   instructions = [||];
   a = 0;
   b = 0;
@@ -270,7 +270,7 @@ type state = {instructions : instruction array; a : int; b : int; c : int; d : i
   zero = false;
   carry = false;
   stack = [];
-} *)
+} 
 (* val empty : state =
   {instructions = [||]; a = 0; b = 0; c = 0; d = 0; ip = Address 0;
    zero = false; carry = false; stack = []} *)
@@ -338,6 +338,7 @@ let read_register state reg =
   |B -> state.b
   |C -> state.c
   |D -> state.d
+
 (* let primer_izvajanje_2 =
   read_register { empty with a = 10; b = 42 } B *)
 (* val primer_izvajanje_2 : int = 42 *)
@@ -371,10 +372,10 @@ let read_expression state exp =
 [*----------------------------------------------------------------------------*)
 
 let write_register state reg n = match reg with
-  |A -> {instructions = state.instructions; a = n; b = state.b; c = state.c; d = state.d; ip = state.ip; zero = state.zero; carry = state.carry; stack = state.stack }
-  |B -> {instructions = state.instructions; a = state.a; b = n; c = state.c; d = state.d; ip = state.ip; zero = state.zero; carry = state.carry; stack = state.stack }
-  |C -> {instructions = state.instructions; a = state.a; b = state.b; c = n; d = state.d; ip = state.ip; zero = state.zero; carry = state.carry; stack = state.stack }
-  |D -> {instructions = state.instructions; a = state.a; b = state.b; c = state.c; d = n; ip = state.ip; zero = state.zero; carry = state.carry; stack = state.stack }
+  |A -> { state with a = n }
+  |B -> { state with b = n }
+  |C -> { state with c = n }
+  |D -> { state with d = n }
 
 (* let primer_izvajanje_5 =
   write_register { empty with c = 42 } D 24 *)
@@ -388,7 +389,11 @@ let write_register state reg n = match reg with
  s spremenjenim registrom.
 [*----------------------------------------------------------------------------*)
 
-let perform_unop _ _ _ = ()
+let perform_unop f state reg = match reg with
+  |A -> { state with a = f state.a }
+  |B -> { state with b = f state.b }
+  |C -> { state with c = f state.c }
+  |D -> { state with d = f state.d }
 
 (* let primer_izvajanje_6 =
   perform_unop (fun x -> 101 * x) { empty with c = 5 } C *)
@@ -401,8 +406,29 @@ let perform_unop _ _ _ = ()
  expression -> state`, ki izvede dvojiško operacijo na danem registru in izrazu.
  Funkcija naj vrne novo stanje s spremenjenim registrom.
 [*----------------------------------------------------------------------------*)
+let transregister state reg = match reg with
+  |A -> state.a
+  |B -> state.b
+  |C -> state.c
+  |D -> state.d 
 
-let perform_binop _ _ _ _ = ()
+let exp_to_int state exp = match exp with
+  |Register x -> transregister state x
+  |Const n -> n
+
+let perform_binop f state reg exp = 
+  match exp with
+    |Register x -> (match reg with
+            |A -> { state with a = f state.a (transregister state x) }
+            |B -> { state with b = f state.b (transregister state x) }
+            |C -> { state with c = f state.c (transregister state x) }
+            |D -> { state with d = f state.d (transregister state x) })
+    |Const n -> (match reg with
+            |A -> { state with a = f state.a n }
+            |B -> { state with b = f state.b n }
+            |C -> { state with c = f state.c n }
+            |D -> { state with d = f state.d n })
+  
 
 (* let primer_izvajanje_7 =
   perform_binop ( * ) { empty with c = 5 } C (Const 101) *)
@@ -419,7 +445,7 @@ let perform_binop _ _ _ _ = ()
  povečan za 1, saj v našem primeru vsi ukazi zasedejo enako prostora).
 [*----------------------------------------------------------------------------*)
 
-let next _ = ()
+let next ad = match ad with |Address n -> Address (n + 1)
 
 (* let primer_izvajanje_8 =
   next (Address 41) *)
@@ -431,12 +457,12 @@ let next _ = ()
  naslednji ukaz.
 [*----------------------------------------------------------------------------*)
 
-let jump _ _ = ()
-let proceed _ = ()
+let jump state ad = { state with ip = ad }
+let proceed state = { state with ip = next state.ip }
 
-(* let primer_izvajanje_8 =
+(* let primer_izvajanje_9 =
   jump { empty with ip = Address 42} (Address 10) *)
-(* val primer_izvajanje_8 : state =
+(* val primer_izvajanje_9 : state =
   {instructions = [||]; a = 0; b = 0; c = 0; d = 0; ip = Address 10;
    zero = false; carry = false; stack = []} *)
 
@@ -453,8 +479,12 @@ let proceed _ = ()
  Če je sklad prazen, naj funkcija `pop_stack` sproži izjemo.
 [*----------------------------------------------------------------------------*)
 
-let push_stack _ _ = ()
-let pop_stack _ = ()
+exception No_bueno of string
+let push_stack state n = { state with stack = n :: state.stack}
+let pop_stack state = 
+  match state.stack with
+    |[] -> raise (No_bueno "Stack je prazen!")
+    |prvi :: rep -> (prvi, { state with stack = rep})
 
 (* let primer_izvajanje_10 =
   push_stack { empty with stack = [1; 2; 3] } 42 *)
@@ -480,7 +510,7 @@ let pop_stack _ = ()
  kadar je prvo število manjše.Funkcija naj vrne novo stanje.
 [*----------------------------------------------------------------------------*)
 
-let compare _ _ _ = ()
+let compare state (n : int) (m : int) = if n = m then { state with zero = true} else if n < m then { state with carry = true} else state
 
 (* let primer_izvajanje_12 =
   compare empty 24 42 *)
@@ -489,12 +519,12 @@ let compare _ _ _ = ()
    zero = false; carry = true; stack = []} *)
 
 (*----------------------------------------------------------------------------*
- Napišite funkcijo `conditional_jump : state -> bool -> address -> state`, ki
+ Napišite funkcijo `conditional_jump : state -> address -> bool -> state`, ki
  skoči na dani naslov, če je podan pogoj izpolnjen. V nasprotnem primeru naj
  funkcija skoči na naslednji ukaz.
 [*----------------------------------------------------------------------------*)
 
-let conditional_jump _ _ _ = ()
+let conditional_jump state ad boo = if boo then { state with ip = ad } else state
 
 (* let primer_izvajanje_13 =
   conditional_jump { empty with ip = Address 42 } (Address 10) true *)
@@ -517,7 +547,7 @@ let conditional_jump _ _ _ = ()
  na dani naslov in na sklad doda naslednji naslov.
 [*----------------------------------------------------------------------------*)
 
-let call _ _ = ()
+let call state ad = match state.ip with |Address n -> push_stack (jump state ad) (n + 1)
 
 (* let primer_izvajanje_15 =
   call { empty with ip = Address 42 } (Address 10) *)
@@ -530,7 +560,9 @@ let call _ _ = ()
  ki je na vrhu sklada, in odstrani ta naslov s sklada.
 [*----------------------------------------------------------------------------*)
 
-let return _ = ()
+let return state = match state.stack with
+  |[] -> raise (No_bueno "Stack je prazen!")
+  |prvi :: rep -> { state with ip = Address prvi; stack = rep}
 
 (* let primer_izvajanje_16 =
   return { empty with ip = (Address 100); stack = [42; 43; 44] } *)
@@ -550,37 +582,38 @@ let return _ = ()
  set.html), ki smo ga pogledali na predavanjih.
 [*----------------------------------------------------------------------------*)
 
-(* let run_instruction st = function
-  (* | MOV (reg, exp) -> TODO *)
-  | ADD (reg, exp) -> perform_binop ( + ) st reg exp |> proceed
-  (* | SUB (reg, exp) -> TODO *)
-  | INC reg -> perform_unop succ st reg |> proceed
-  (* | DEC reg -> TODO *)
-  (* | MUL exp -> TODO *)
-  (* | DIV exp -> TODO *)
-  (* Pozor, OCaml land/lor/lxor interpretira kot simbole, zato jih pišemo infiksno! *)
-  | AND (reg, exp) -> perform_binop ( land ) st reg exp |> proceed
-  | OR (reg, exp) -> perform_binop ( lor ) st reg exp |> proceed
-  | XOR (reg, exp) -> perform_binop ( lxor ) st reg exp |> proceed
-  | NOT reg -> perform_unop lnot st reg |> proceed
-  (* | CMP (reg, exp) -> TODO *)
-  (* | JMP add -> TODO *)
-  | JA add -> conditional_jump st add (not st.carry && not st.zero)
-  (* | JAE add -> TODO *)
-  (* | JB add -> TODO *)
-  (* | JBE add -> TODO *)
-  (* | JE add -> TODO *)
-  (* | JNE add -> TODO *)
-  (* | CALL add -> TODO *)
-  (* | RET -> TODO *)
-  | PUSH exp -> push_stack st (read_expression st exp) |> proceed
-  | POP reg ->
-      let n, st' = pop_stack st in
-      write_register st' reg n |> proceed
-  | HLT -> failwith "Cannot execute instruction" *)
+let run_instruction state = function
+  |MOV (reg, exp) -> write_register state reg (read_expression state exp) |> proceed
+  |ADD (reg, exp) -> perform_binop ( + ) state reg exp |> proceed
+  |SUB (reg, exp) -> perform_binop ( - ) state reg exp |> proceed
+  |INC reg -> perform_unop succ state reg |> proceed
+  |DEC reg -> perform_unop pred state reg |> proceed
+  |MUL exp -> perform_binop ( * ) state A exp |> proceed
+  |DIV exp -> perform_binop ( / ) state A exp |> proceed
+  (* Pozor, OCaml land/lor/lxor interpretira kot simbole, zato jih pišemo infiksno! >:3 *)
+  |AND (reg, exp) -> perform_binop ( land ) state reg exp |> proceed
+  |OR (reg, exp) -> perform_binop ( lor ) state reg exp |> proceed
+  |XOR (reg, exp) -> perform_binop ( lxor ) state reg exp |> proceed
+  |NOT reg -> perform_unop lnot state reg |> proceed
+  |CMP (reg, exp) -> compare state (transregister state reg) (exp_to_int state exp) |> proceed  
+  |JMP ad -> jump state ad
+  |JA ad -> conditional_jump state ad (not state.carry && not state.zero)
+  |JAE ad -> conditional_jump state ad (not state.carry && not state.zero)
+  |JB ad -> conditional_jump state ad (state.carry || state.zero)
+  |JBE ad -> conditional_jump state ad (state.carry || state.zero)
+  |JE ad -> conditional_jump state ad state.zero
+  |JNE ad -> conditional_jump state ad state.zero
+  |CALL ad -> call state ad
+  |RET -> return state |> proceed
+  |PUSH exp -> push_stack state (read_expression state exp) |> proceed
+  |POP reg ->
+      let n, state' = pop_stack state in
+      write_register state' reg n |> proceed
+  |HLT -> failwith "Cannot execute instruction" 
+
 (* val run_instruction : state -> instruction -> state = <fun> *)
 
-let run_instruction _ _ = ()
+
 
 (*----------------------------------------------------------------------------*
  Napišite funkcijo `run_program : state -> state`, ki izvaja ukaze v danem
