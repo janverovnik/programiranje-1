@@ -157,7 +157,7 @@ type instruction =
  berljivih oznak kot so `main`, `fib` in `.fib_end` bomo obravnavali kasneje.
 [*----------------------------------------------------------------------------*)
 
-(* let fibonacci n = [
+let fibonacci n = [
   JMP (Address 20);       (* JMP main *)
 
 (* fib: *)
@@ -201,7 +201,7 @@ type instruction =
   MOV (A, Const n);       (* MOV A, n *)
   CALL (Address 1);       (* CALL fib *)
   HLT;                    (* HLT *)
-] *)
+] 
 (* val fibonacci : int -> instruction list = <fun> *)
 
 (* let primer_tipi_5 = fibonacci 10 *)
@@ -284,7 +284,7 @@ let empty = {
 [*----------------------------------------------------------------------------*)
 
 let init inst_list =
-  {instructions = Array.of_list inst_list; a = 0; b = 0; c = 0; d = 0; ip = Address 0; zero = false; carry = false; stack = []}
+  { empty with instructions = Array.of_list inst_list }
 
 (* let primer_tipi_7 = init [ MOV (A, Register B); MOV (C, Const 42); JA (Address 10); HLT ] *)
 (* val primer_tipi_7 : state =
@@ -406,23 +406,14 @@ let perform_unop f state reg = match reg with
  expression -> state`, ki izvede dvojiško operacijo na danem registru in izrazu.
  Funkcija naj vrne novo stanje s spremenjenim registrom.
 [*----------------------------------------------------------------------------*)
-let transregister state reg = match reg with
-  |A -> state.a
-  |B -> state.b
-  |C -> state.c
-  |D -> state.d 
-
-let exp_to_int state exp = match exp with
-  |Register x -> transregister state x
-  |Const n -> n
 
 let perform_binop f state reg exp = 
   match exp with
     |Register x -> (match reg with
-            |A -> { state with a = f state.a (transregister state x) }
-            |B -> { state with b = f state.b (transregister state x) }
-            |C -> { state with c = f state.c (transregister state x) }
-            |D -> { state with d = f state.d (transregister state x) })
+            |A -> { state with a = f state.a (read_register state x) }
+            |B -> { state with b = f state.b (read_register state x) }
+            |C -> { state with c = f state.c (read_register state x) }
+            |D -> { state with d = f state.d (read_register state x) })
     |Const n -> (match reg with
             |A -> { state with a = f state.a n }
             |B -> { state with b = f state.b n }
@@ -595,16 +586,16 @@ let run_instruction state = function
   |OR (reg, exp) -> perform_binop ( lor ) state reg exp |> proceed
   |XOR (reg, exp) -> perform_binop ( lxor ) state reg exp |> proceed
   |NOT reg -> perform_unop lnot state reg |> proceed
-  |CMP (reg, exp) -> compare state (transregister state reg) (exp_to_int state exp) |> proceed  
+  |CMP (reg, exp) -> compare state (read_register state reg) (read_expression state exp) |> proceed  
   |JMP ad -> jump state ad
   |JA ad -> conditional_jump state ad (not state.carry && not state.zero)
-  |JAE ad -> conditional_jump state ad (not state.carry && not state.zero)
-  |JB ad -> conditional_jump state ad (state.carry || state.zero)
+  |JAE ad -> conditional_jump state ad (not state.carry) 
+  |JB ad -> conditional_jump state ad state.carry 
   |JBE ad -> conditional_jump state ad (state.carry || state.zero)
   |JE ad -> conditional_jump state ad state.zero
-  |JNE ad -> conditional_jump state ad state.zero
+  |JNE ad -> conditional_jump state ad (not state.zero)
   |CALL ad -> call state ad
-  |RET -> return state |> proceed
+  |RET -> return state 
   |PUSH exp -> push_stack state (read_expression state exp) |> proceed
   |POP reg ->
       let n, state' = pop_stack state in
@@ -613,15 +604,16 @@ let run_instruction state = function
 
 (* val run_instruction : state -> instruction -> state = <fun> *)
 
-
-
 (*----------------------------------------------------------------------------*
  Napišite funkcijo `run_program : state -> state`, ki izvaja ukaze v danem
  stanju, dokler ne naleti na ukaz `HLT` ali pa ukazni kazalec skoči ven iz
  ukaznega pomnilnika. Funkcija naj vrne končno stanje.
 [*----------------------------------------------------------------------------*)
 
-let rec run_program _ = ()
+let rec run_program state = match state.ip with |Address x -> 
+  if state.instructions.(x) = HLT then state else
+  if Array.length state.instructions < x then state else
+  run_program (run_instruction state state.instructions.(x))
 
 (* let primer_izvajanje_16 =
   fibonacci 10
@@ -806,7 +798,7 @@ let primer_branje_9 =
 
 let run _ = ()
 
-let fibonacci = {|
+(* let fibonacci = {|
   JMP main
   ; Funkcija, ki izračuna fib(A) in vrednost shrani v register A
   fib:
@@ -850,12 +842,12 @@ let fibonacci = {|
       MOV A, 7
       CALL fib
   HLT
-|}
+|} *)
 (* val fibonacci : string =
   "\n  JMP main\n  ; Funkcija, ki izračuna fib(A) in vrednost shrani v register A\n  fib:\n      ; Shranimo vrednosti registrov\n      PUSH C\n      PUSH B\n  \n      ; V C shranimo začetno vrednost A\n      MOV C, A\n  \n      ; Če je A = 0, je to tudi rezultat\n      CMP A, 0\n      JE .fib_end\n  \n      ; Če"... (* string length 872; truncated *) *)
 
-let primer_branje_11 =
-  run fibonacci
+(* let primer_branje_11 =
+  run fibonacci *)
 (* val primer_branje_11 : state =
   {instructions =
     [|JMP (Address 20); PUSH (Register C); PUSH (Register B);
