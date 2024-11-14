@@ -515,7 +515,7 @@ let compare state (n : int) (m : int) = if n = m then { state with zero = true} 
  funkcija skoči na naslednji ukaz.
 [*----------------------------------------------------------------------------*)
 
-let conditional_jump state ad boo = if boo then { state with ip = ad } else state
+let conditional_jump state ad boo = if boo then { state with ip = ad } else proceed state
 
 (* let primer_izvajanje_13 =
   conditional_jump { empty with ip = Address 42 } (Address 10) true *)
