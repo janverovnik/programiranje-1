@@ -470,11 +470,11 @@ let proceed state = { state with ip = next state.ip }
  Če je sklad prazen, naj funkcija `pop_stack` sproži izjemo.
 [*----------------------------------------------------------------------------*)
 
-exception No_bueno of string
+
 let push_stack state n = { state with stack = n :: state.stack}
 let pop_stack state = 
   match state.stack with
-    |[] -> raise (No_bueno "Stack je prazen!")
+    |[] -> failwith "Stack je prazen!"
     |prvi :: rep -> (prvi, { state with stack = rep})
 
 (* let primer_izvajanje_10 =
@@ -515,7 +515,7 @@ let compare state (n : int) (m : int) = if n = m then { state with zero = true} 
  funkcija skoči na naslednji ukaz.
 [*----------------------------------------------------------------------------*)
 
-let conditional_jump state ad boo = if boo then { state with ip = ad } else state
+let conditional_jump state ad boo = if boo then { state with ip = ad } else proceed state
 
 (* let primer_izvajanje_13 =
   conditional_jump { empty with ip = Address 42 } (Address 10) true *)
