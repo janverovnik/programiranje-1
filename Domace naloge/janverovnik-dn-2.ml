@@ -551,9 +551,7 @@ let call state ad = match state.ip with |Address n -> push_stack (jump state ad)
  ki je na vrhu sklada, in odstrani ta naslov s sklada.
 [*----------------------------------------------------------------------------*)
 
-let return state = match state.stack with
-  |[] -> raise (No_bueno "Stack je prazen!")
-  |prvi :: rep -> { state with ip = Address prvi; stack = rep}
+let return state = match pop_stack state with |n, state' -> { state' with ip = Address n}
 
 (* let primer_izvajanje_16 =
   return { empty with ip = (Address 100); stack = [42; 43; 44] } *)
@@ -610,10 +608,10 @@ let run_instruction state = function
  ukaznega pomnilnika. Funkcija naj vrne končno stanje.
 [*----------------------------------------------------------------------------*)
 
-let rec run_program state = match state.ip with |Address x -> 
-  if state.instructions.(x) = HLT then state else
-  if Array.length state.instructions < x then state else
-  run_program (run_instruction state state.instructions.(x))
+let rec run_program state = match read_instruction state with
+  |None -> state
+  |Some HLT -> state
+  |Some inst -> run_program (run_instruction state inst)
 
 (* let primer_izvajanje_16 =
   fibonacci 10
@@ -621,12 +619,12 @@ let rec run_program state = match state.ip with |Address x ->
   |> run_program *)
 (* val primer_izvajanje_16 : state =
   {instructions =
-    [|JMP (Address 20); PUSH (Register C); PUSH (Register B);
-      MOV (C, Register A); CMP (A, Const 0); JE (Address 17);
-      CMP (A, Const 1); JE (Address 17); DEC C; MOV (A, Register C);
-      CALL (Address 1); MOV (B, Register A); DEC C; MOV (A, Register C);
-      CALL (Address 1); ADD (A, Register B); JMP (Address 17); POP B; 
-      POP C; RET; MOV (A, Const 10); CALL (Address 1); HLT|];
+    [|0. JMP (Address 20); 1. PUSH (Register C); 2. PUSH (Register B);
+      3. MOV (C, Register A); 4. CMP (A, Const 0); 5. JE (Address 17);
+      6. CMP (A, Const 1); 7. JE (Address 17); 8. DEC C; 9. MOV (A, Register C);
+      10. CALL (Address 1); 11. MOV (B, Register A); 12. DEC C; 13. MOV (A, Register C);
+      14. CALL (Address 1); 15. ADD (A, Register B); 16. JMP (Address 17); 17. POP B; 
+      18. POP C; 19. RET; 20. MOV (A, Const 10); 21. CALL (Address 1); 22. HLT|];
    a = 55; b = 0; c = 0; d = 0; ip = Address 22; zero = true; carry = false;
    stack = []} *)
 
@@ -649,7 +647,12 @@ let rec run_program state = match state.ip with |Address x ->
  register.
 [*----------------------------------------------------------------------------*)
 
-let parse_register _ = ()
+let parse_register niz = match niz with
+  |"A" -> A
+  |"B" -> B
+  |"C" -> C
+  |"D" -> D
+  |_ -> failwith "Ni pravi register!"
 
 let primer_branje_1 = parse_register "A"
 (* val primer_branje_1 : register = A *)
@@ -659,7 +662,7 @@ let primer_branje_1 = parse_register "A"
  izraz.
 [*----------------------------------------------------------------------------*)
 
-let parse_expression _ = ()
+let parse_expression niz = if try ignore (int_of_string niz); true with Failure _ -> false then Const (int_of_string niz) else Register (parse_register niz)
 
 let primer_branje_2 = parse_expression "A"
 (* val primer_branje_2 : expression = Register A *)
@@ -678,7 +681,11 @@ let primer_branje_3 = parse_expression "42"
  `String.sub`.
 [*----------------------------------------------------------------------------*)
 
-let clean_line _ = ()
+let clean_line niz = 
+  let cistoca = List.hd (String.split_on_char ';' niz) in
+  String.sub
+  
+  
 
 let primer_branje_4 = clean_line "   MOV A, 42    ; To je komentar   "
 (* val primer_branje_4 : string = "MOV A, 42" *)
