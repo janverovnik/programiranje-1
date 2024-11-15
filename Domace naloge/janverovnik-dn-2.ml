@@ -681,12 +681,10 @@ let primer_branje_3 = parse_expression "42"
  `String.sub`.
 [*----------------------------------------------------------------------------*)
 
-let clean_line niz = 
-  let cistoca = List.hd (String.split_on_char ';' niz) in
-  String.sub
+let clean_line niz = if niz = "" then "" else
+  let cistoca = List.hd (String.split_on_char ';' niz) in    (*Kle ni preveč nehigienično uporabt List.hd; itak ne more bit prazn :3*)
+  String.trim cistoca
   
-  
-
 let primer_branje_4 = clean_line "   MOV A, 42    ; To je komentar   "
 (* val primer_branje_4 : string = "MOV A, 42" *)
 
@@ -696,7 +694,7 @@ let primer_branje_4 = clean_line "   MOV A, 42    ; To je komentar   "
  vrstice.
 [*----------------------------------------------------------------------------*)
 
-let clean_lines _ = ()
+let clean_lines slist = List.filter (fun x -> x = "") (List.map clean_line slist)
 
 (*----------------------------------------------------------------------------*
  ### Oznake
@@ -715,7 +713,11 @@ let clean_lines _ = ()
  podan direktno s številom ali pa z eno izmed oznak v seznamu.
 [*----------------------------------------------------------------------------*)
 
-let parse_address _ _ = ()
+let parse_address list niz = if try ignore (int_of_string niz); true with Failure _ -> false then Address (int_of_string niz) else
+  let rec pomozna list niz = match list with
+    |[] -> failwith "V seznamu ni te oznake."
+    |prvi :: rep -> match prvi with |str, ad -> if str = niz then ad else pomozna rep niz in
+  pomozna list niz
 
 (* let primer_branje_5 = parse_address [("main", Address 42)] "main" *)
 (* val primer_branje_5 : address = Address 42 *)
@@ -728,7 +730,7 @@ let parse_address _ _ = ()
  se niz konča z dvopičjem, sicer pa vrne `None`.
 [*----------------------------------------------------------------------------*)
 
-let parse_label _ = ()
+let parse_label niz = if String.get niz (String.length niz - 1) <> ':' then None else Some (String.sub niz 0 (String.length niz - 1))
 
 let primer_branje_7 = parse_label "main:"
 (* val primer_branje_7 : string option = Some "main" *)
@@ -743,7 +745,13 @@ let primer_branje_8 = parse_label "MOV A, 42"
  pusti nespremenjene.
 [*----------------------------------------------------------------------------*)
 
-let parse_labels _ = ()
+let parse_labels slist =
+  let rec aux i slist acc1 acc2 = match slist with
+    |[] -> (acc1, List.rev acc2)
+    |prvi :: rep -> match parse_label prvi with 
+                    |None -> aux i rep acc1 (prvi :: acc2)
+                    |Some niz -> aux (i + 1) rep ((prvi, Address i) :: acc1) acc2 in
+  aux 1 slist [] []
 
 let primer_branje_9 =
   parse_labels ["JMP main"; "main:"; "MOV A, 0"; "loop:"; "INC A"; "JMP loop"]
