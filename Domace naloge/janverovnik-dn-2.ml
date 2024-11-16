@@ -41,7 +41,7 @@
 
 type register = A | B | C | D
 
-(* let primer_tipi_1 = [[A; B; B; A]; [A; C; D; C]] *)
+let primer_tipi_1 = [[A; B; B; A]; [A; C; D; C]]
 (* val primer_tipi_1 : register list list = [[A; B; B; A]; [A; C; D; C]] *)
 
 (*----------------------------------------------------------------------------*
@@ -59,7 +59,7 @@ type expression =
 |Register of register
 |Const of int
 
-(* let primer_tipi_2 = [Register B; Const 42] *)
+let primer_tipi_2 = [Register B; Const 42] 
 (* val primer_tipi_2 : expression list = [Register B; Const 42] *)
 
 (*----------------------------------------------------------------------------*
@@ -76,7 +76,7 @@ type expression =
 type address =
 |Address of int
 
-(* let primer_tipi_3 = (42, Address 42) *)
+let primer_tipi_3 = (42, Address 42) 
 (* val primer_tipi_3 : int * address = (42, Address 42) *)
 
 (*----------------------------------------------------------------------------*
@@ -146,7 +146,7 @@ type instruction =
   | POP of register
   | HLT
 
-(* let primer_tipi_4 = [ MOV (A, Register B); MOV (C, Const 42); JA (Address 10); HLT ] *)
+let primer_tipi_4 = [ MOV (A, Register B); MOV (C, Const 42); JA (Address 10); HLT ] 
 (* val primer_tipi_4 : instruction list =
   [MOV (A, Register B); MOV (C, Const 42); JA (Address 10); HLT] *)
 
@@ -204,7 +204,7 @@ let fibonacci n = [
 ] 
 (* val fibonacci : int -> instruction list = <fun> *)
 
-(* let primer_tipi_5 = fibonacci 10 *)
+let primer_tipi_5 = fibonacci 10 
 (* val primer_tipi_5 : instruction list =
   [JMP (Address 20); PUSH (Register C); PUSH (Register B);
    MOV (C, Register A); CMP (A, Const 0); JE (Address 17); CMP (A, Const 1);
@@ -239,13 +239,13 @@ let fibonacci n = [
 
 type state = {instructions : instruction array; a : int; b : int; c : int; d : int; ip : address; zero : bool; carry : bool; stack : int list}
 
-(* let primer_tipi_6 = {
+let primer_tipi_6 = {
   instructions = [| MOV (A, Register B); MOV (C, Const 42); JA (Address 10); HLT |];
   a = 1; b = 2; c = 3; d = 4;
   ip = Address 0;
   zero = true; carry = false;
   stack = [5; 6; 7];
-} *)
+} 
 (* val primer_tipi_6 : state =
   {instructions =
     [|MOV (A, Register B); MOV (C, Const 42); JA (Address 10); HLT|];
@@ -286,7 +286,7 @@ let empty = {
 let init inst_list =
   { empty with instructions = Array.of_list inst_list }
 
-(* let primer_tipi_7 = init [ MOV (A, Register B); MOV (C, Const 42); JA (Address 10); HLT ] *)
+let primer_tipi_7 = init [ MOV (A, Register B); MOV (C, Const 42); JA (Address 10); HLT ] 
 (* val primer_tipi_7 : state =
   {instructions =
     [|MOV (A, Register B); MOV (C, Const 42); JA (Address 10); HLT|];
@@ -312,18 +312,16 @@ let init inst_list =
  funkcija vrne `None`.
 [*----------------------------------------------------------------------------*)
 
-let read_instruction state = 
-  let array1 = state.instructions in
-  match state.ip with
+let read_instruction state = match state.ip with 
   |Address x -> 
-  if Array.length array1 < x then None else Some array1.(x)
+  if Array.length state.instructions < x then None else Some state.instructions.(x)
 
-(* let primer_izvajanje_1 =
+let primer_izvajanje_1 =
   [
     read_instruction { empty with instructions = [| MOV (A, Register B); MOV (C, Const 42); JA (Address 10); HLT |]; ip = (Address 1) };
     read_instruction { empty with instructions = [| MOV (A, Register B); MOV (C, Const 42); JA (Address 10); HLT |]; ip = (Address 3) };
     read_instruction { empty with instructions = [| MOV (A, Register B); MOV (C, Const 42); JA (Address 10); HLT |]; ip = (Address 5) };
-  ] *)
+  ]
 (* val primer_izvajanje_1 : instruction option list =
   [Some (MOV (C, Const 42)); Some HLT; None] *)
 
@@ -332,15 +330,14 @@ let read_instruction state =
  registra v danem stanju.
 [*----------------------------------------------------------------------------*)
 
-let read_register state reg = 
-  match reg with  
+let read_register state reg = match reg with  
   |A -> state.a
   |B -> state.b
   |C -> state.c
   |D -> state.d
 
-(* let primer_izvajanje_2 =
-  read_register { empty with a = 10; b = 42 } B *)
+let primer_izvajanje_2 =
+  read_register { empty with a = 10; b = 42 } B 
 (* val primer_izvajanje_2 : int = 42 *)
 
 (*----------------------------------------------------------------------------*
@@ -348,17 +345,16 @@ let read_register state reg =
  celoštevilsko vrednost izraza v danem stanju.
 [*----------------------------------------------------------------------------*)
 
-let read_expression state exp = 
-  match exp with
+let read_expression state exp = match exp with
   |Register x -> read_register state x
   |Const n -> n
 
-(* let primer_izvajanje_3 =
-  read_expression { empty with a = 10; b = 20 } (Register B) *)
+let primer_izvajanje_3 =
+  read_expression { empty with a = 10; b = 20 } (Register B) 
 (* val primer_izvajanje_3 : int = 20 *)
 
-(* let primer_izvajanje_4 =
-  read_expression { empty with a = 10; b = 20 } (Const 42) *)
+let primer_izvajanje_4 =
+  read_expression { empty with a = 10; b = 20 } (Const 42) 
 (* val primer_izvajanje_4 : int = 42 *)
 
 (*----------------------------------------------------------------------------*
@@ -377,8 +373,8 @@ let write_register state reg n = match reg with
   |C -> { state with c = n }
   |D -> { state with d = n }
 
-(* let primer_izvajanje_5 =
-  write_register { empty with c = 42 } D 24 *)
+let primer_izvajanje_5 =
+  write_register { empty with c = 42 } D 24 
 (* val primer_izvajanje_5 : state =
   {instructions = [||]; a = 0; b = 0; c = 42; d = 24; ip = Address 0;
    zero = false; carry = false; stack = []} *)
@@ -395,8 +391,8 @@ let perform_unop f state reg = match reg with
   |C -> { state with c = f state.c }
   |D -> { state with d = f state.d }
 
-(* let primer_izvajanje_6 =
-  perform_unop (fun x -> 101 * x) { empty with c = 5 } C *)
+let primer_izvajanje_6 =
+  perform_unop (fun x -> 101 * x) { empty with c = 5 } C 
 (* val primer_izvajanje_6 : state =
   {instructions = [||]; a = 0; b = 0; c = 505; d = 0; ip = Address 0;
    zero = false; carry = false; stack = []} *)
@@ -421,8 +417,8 @@ let perform_binop f state reg exp =
             |D -> { state with d = f state.d n })
   
 
-(* let primer_izvajanje_7 =
-  perform_binop ( * ) { empty with c = 5 } C (Const 101) *)
+let primer_izvajanje_7 =
+  perform_binop ( * ) { empty with c = 5 } C (Const 101) 
 (* val primer_izvajanje_7 : state =
   {instructions = [||]; a = 0; b = 0; c = 505; d = 0; ip = Address 0;
    zero = false; carry = false; stack = []} *)
@@ -438,8 +434,8 @@ let perform_binop f state reg exp =
 
 let next ad = match ad with |Address n -> Address (n + 1)
 
-(* let primer_izvajanje_8 =
-  next (Address 41) *)
+let primer_izvajanje_8 =
+  next (Address 41)
 (* val primer_izvajanje_8 : address = Address 42 *)
 
 (*----------------------------------------------------------------------------*
@@ -451,14 +447,14 @@ let next ad = match ad with |Address n -> Address (n + 1)
 let jump state ad = { state with ip = ad }
 let proceed state = { state with ip = next state.ip }
 
-(* let primer_izvajanje_9 =
-  jump { empty with ip = Address 42} (Address 10) *)
+let primer_izvajanje_9 =
+  jump { empty with ip = Address 42} (Address 10) 
 (* val primer_izvajanje_9 : state =
   {instructions = [||]; a = 0; b = 0; c = 0; d = 0; ip = Address 10;
    zero = false; carry = false; stack = []} *)
 
-(* let primer_izvajanje_10 =
-  proceed { empty with ip = Address 42} *)
+let primer_izvajanje_10 =
+  proceed { empty with ip = Address 42} 
 (* val primer_izvajanje_10 : state =
   {instructions = [||]; a = 0; b = 0; c = 0; d = 0; ip = Address 43;
    zero = false; carry = false; stack = []} *)
@@ -477,14 +473,14 @@ let pop_stack state =
     |[] -> failwith "Stack je prazen!"
     |prvi :: rep -> (prvi, { state with stack = rep})
 
-(* let primer_izvajanje_10 =
-  push_stack { empty with stack = [1; 2; 3] } 42 *)
+let primer_izvajanje_10 =
+  push_stack { empty with stack = [1; 2; 3] } 42 
 (* val primer_izvajanje_10 : state =
   {instructions = [||]; a = 0; b = 0; c = 0; d = 0; ip = Address 0;
    zero = false; carry = false; stack = [42; 1; 2; 3]} *)
 
-(* let primer_izvajanje_11 =
-  pop_stack { empty with stack = [1; 2; 3] } *)
+let primer_izvajanje_11 =
+  pop_stack { empty with stack = [1; 2; 3] } 
 (* val primer_izvajanje_11 : int * state =
   (1,
    {instructions = [||]; a = 0; b = 0; c = 0; d = 0; ip = Address 0;
@@ -503,8 +499,8 @@ let pop_stack state =
 
 let compare state (n : int) (m : int) = if n = m then { state with zero = true} else if n < m then { state with carry = true} else state
 
-(* let primer_izvajanje_12 =
-  compare empty 24 42 *)
+let primer_izvajanje_12 =
+  compare empty 24 42 
 (* val primer_izvajanje_12 : state =
   {instructions = [||]; a = 0; b = 0; c = 0; d = 0; ip = Address 0;
    zero = false; carry = true; stack = []} *)
@@ -517,14 +513,14 @@ let compare state (n : int) (m : int) = if n = m then { state with zero = true} 
 
 let conditional_jump state ad boo = if boo then { state with ip = ad } else proceed state
 
-(* let primer_izvajanje_13 =
-  conditional_jump { empty with ip = Address 42 } (Address 10) true *)
+let primer_izvajanje_13 =
+  conditional_jump { empty with ip = Address 42 } (Address 10) true 
 (* val primer_izvajanje_13 : state =
   {instructions = [||]; a = 0; b = 0; c = 0; d = 0; ip = Address 10;
    zero = false; carry = false; stack = []} *)
 
-(* let primer_izvajanje_14 =
-  conditional_jump { empty with ip = Address 42 } (Address 10) false *)
+let primer_izvajanje_14 =
+  conditional_jump { empty with ip = Address 42 } (Address 10) false 
 (* val primer_izvajanje_14 : state =
   {instructions = [||]; a = 0; b = 0; c = 0; d = 0; ip = Address 43;
    zero = false; carry = false; stack = []} *)
@@ -540,11 +536,11 @@ let conditional_jump state ad boo = if boo then { state with ip = ad } else proc
 
 let call state ad = match state.ip with |Address n -> push_stack (jump state ad) (n + 1)
 
-(* let primer_izvajanje_15 =
-  call { empty with ip = Address 42 } (Address 10) *)
+let primer_izvajanje_15 =
+  call { empty with ip = Address 42 } (Address 10) 
 (* val primer_izvajanje_15 : state =
   {instructions = [||]; a = 0; b = 0; c = 0; d = 0; ip = Address 10;
-   zero = false; carry = false; stack = [43]} *)
+  zero = false; carry = false; stack = [43]} *)
 
 (*----------------------------------------------------------------------------*
  Napišite funkcijo `return : state -> state`, ki v danem stanju skoči na naslov,
@@ -553,9 +549,9 @@ let call state ad = match state.ip with |Address n -> push_stack (jump state ad)
 
 let return state = match pop_stack state with |n, state' -> { state' with ip = Address n}
 
-(* let primer_izvajanje_16 =
-  return { empty with ip = (Address 100); stack = [42; 43; 44] } *)
-(* val primer_izvajanje_16 : state =
+let primer_izvajanje_16a =
+  return { empty with ip = (Address 100); stack = [42; 43; 44] }
+(* val primer_izvajanje_16a : state =
   {instructions = [||]; a = 0; b = 0; c = 0; d = 0; ip = Address 42;
    zero = false; carry = false; stack = [43; 44]} *)
 
@@ -586,7 +582,7 @@ let run_instruction state = function
   |NOT reg -> perform_unop lnot state reg |> proceed
   |CMP (reg, exp) -> compare state (read_register state reg) (read_expression state exp) |> proceed  
   |JMP ad -> jump state ad
-  |JA ad -> conditional_jump state ad (not state.carry && not state.zero)
+  |JA ad -> conditional_jump state ad ((not state.carry) && (not state.zero))
   |JAE ad -> conditional_jump state ad (not state.carry) 
   |JB ad -> conditional_jump state ad state.carry 
   |JBE ad -> conditional_jump state ad (state.carry || state.zero)
@@ -608,16 +604,19 @@ let run_instruction state = function
  ukaznega pomnilnika. Funkcija naj vrne končno stanje.
 [*----------------------------------------------------------------------------*)
 
-let rec run_program state = match read_instruction state with
+let rec run_program state = match read_instruction state with (* Ne vem zakaj fibonacci ne dela in počas se hočm zjokat ;( *)
   |None -> state
   |Some HLT -> state
   |Some inst -> run_program (run_instruction state inst)
 
-(* let primer_izvajanje_16 =
+let primer_izvajanje_16b =
   fibonacci 10
   |> init
-  |> run_program *)
-(* val primer_izvajanje_16 : state =
+  |> run_program 
+
+let state = { empty with instructions = [| MOV (A, Const 10); MOV (B, Const 10); ADD (A, Register B); MOV (C, Register A); CMP (A, Register C); JE (Address 7); MOV (B, Const 2); HLT |] } |> run_program
+
+(* val primer_izvajanje_16b : state =
   {instructions =
     [|0. JMP (Address 20); 1. PUSH (Register C); 2. PUSH (Register B);
       3. MOV (C, Register A); 4. CMP (A, Const 0); 5. JE (Address 17);
