@@ -694,7 +694,7 @@ let primer_branje_4 = clean_line "   MOV A, 42    ; To je komentar   "
  vrstice.
 [*----------------------------------------------------------------------------*)
 
-let clean_lines slist = List.filter (fun x -> x = "") (List.map clean_line slist)
+let clean_lines slist = List.filter (fun x -> x <> "") (List.map clean_line slist)
 
 (*----------------------------------------------------------------------------*
  ### Oznake
@@ -749,9 +749,9 @@ let parse_labels slist =
   let rec aux i slist acc1 acc2 = match slist with
     |[] -> (acc1, List.rev acc2)
     |prvi :: rep -> match parse_label prvi with 
-                    |None -> aux i rep acc1 (prvi :: acc2)
-                    |Some niz -> aux (i + 1) rep ((prvi, Address i) :: acc1) acc2 in
-  aux 1 slist [] []
+                    |None -> aux (i + 1) rep acc1 (prvi :: acc2)
+                    |Some niz -> aux i rep ((niz, Address i) :: acc1) acc2 in
+  aux 0 slist [] []
 
 let primer_branje_9 =
   parse_labels ["JMP main"; "main:"; "MOV A, 0"; "loop:"; "INC A"; "JMP loop"]
@@ -764,7 +764,7 @@ let primer_branje_9 =
  string -> instruction`, ki iz niza prebere ukaz.
 [*----------------------------------------------------------------------------*)
 
-(* let parse_instruction labels line =
+let parse_instruction labels line =
   let tokens =
     line
     |> String.split_on_char ' '
@@ -774,30 +774,30 @@ let primer_branje_9 =
   in
   match tokens with
   | ["MOV"; reg; exp] -> MOV (parse_register reg, parse_expression exp)
-  (* | ["ADD"; reg; exp] -> TODO *)
-  (* | ["SUB"; reg; exp] -> TODO *)
+  | ["ADD"; reg; exp] -> ADD (parse_register reg, parse_expression exp)
+  | ["SUB"; reg; exp] -> SUB (parse_register reg, parse_expression exp)
   | ["INC"; reg] -> INC (parse_register reg)
-  (* | ["DEC"; reg] -> TODO *)
-  (* | ["MUL"; exp] -> TODO *)
-  (* | ["DIV"; exp] -> TODO *)
-  (* | ["AND"; reg; exp] -> TODO *)
-  (* | ["OR"; reg; exp] -> TODO *)
-  (* | ["XOR"; reg; exp] -> TODO *)
-  (* | ["NOT"; reg] -> TODO *)
-  (* | ["CMP"; reg; exp] -> TODO *)
-  | ["JMP"; add] -> JMP (parse_address labels add)
-  (* | ["JA"; add] -> TODO *)
-  (* | ["JAE"; add] -> TODO *)
-  (* | ["JB"; add] -> TODO *)
-  (* | ["JBE"; add] -> TODO *)
-  (* | ["JE"; add] -> TODO *)
-  (* | ["JNE"; add] -> TODO *)
-  (* | ["CALL"; add] -> TODO *)
+  | ["DEC"; reg] -> DEC (parse_register reg)
+  | ["MUL"; exp] -> MUL (parse_expression exp)
+  | ["DIV"; exp] -> DIV (parse_expression exp)
+  | ["AND"; reg; exp] -> AND (parse_register reg, parse_expression exp)
+  | ["OR"; reg; exp] -> OR (parse_register reg, parse_expression exp)
+  | ["XOR"; reg; exp] -> XOR (parse_register reg, parse_expression exp)
+  | ["NOT"; reg] -> NOT (parse_register reg) 
+  | ["CMP"; reg; exp] -> CMP (parse_register reg, parse_expression exp)
+  | ["JMP"; ad] -> JMP (parse_address labels ad)
+  | ["JA"; ad] -> JA (parse_address labels ad)
+  | ["JAE"; ad] -> JAE (parse_address labels ad)
+  | ["JB"; ad] -> JB (parse_address labels ad)
+  | ["JBE"; ad] -> JBE (parse_address labels ad)
+  | ["JE"; ad] -> JE (parse_address labels ad)
+  | ["JNE"; ad] -> JNE (parse_address labels ad)
+  | ["CALL"; ad] -> CALL (parse_address labels ad)
   | ["RET"] -> RET
   | ["PUSH"; exp] -> PUSH (parse_expression exp)
   | ["POP"; reg] -> POP (parse_register reg)
   | ["HLT"] -> HLT
-  | _ -> failwith ("Invalid instruction: " ^ line) *)
+  | _ -> failwith ("Invalid instruction: " ^ line) 
 
 (* let primer_branje_10 =
   List.map (parse_instruction [("main", Address 42)]) ["MOV A, 42"; "CALL main"; "HLT"] *)
@@ -811,9 +811,12 @@ let primer_branje_9 =
  funkcija vrne končno stanje.
 [*----------------------------------------------------------------------------*)
 
-let run _ = ()
+let run niz = (*Kr fajn prevede niz v init z instructioni ampak run_program še kr ne dela ok, poprav to!*)
+  let nek = String.split_on_char '\n' niz |> clean_lines |> parse_labels in
+  match nek with |tlist, inst_list -> let nek2 = List.map (parse_instruction tlist) inst_list in
+  run_program (init nek2)
 
-(* let fibonacci = {|
+let fibonacci2 = {|
   JMP main
   ; Funkcija, ki izračuna fib(A) in vrednost shrani v register A
   fib:
@@ -857,12 +860,12 @@ let run _ = ()
       MOV A, 7
       CALL fib
   HLT
-|} *)
+|} 
 (* val fibonacci : string =
   "\n  JMP main\n  ; Funkcija, ki izračuna fib(A) in vrednost shrani v register A\n  fib:\n      ; Shranimo vrednosti registrov\n      PUSH C\n      PUSH B\n  \n      ; V C shranimo začetno vrednost A\n      MOV C, A\n  \n      ; Če je A = 0, je to tudi rezultat\n      CMP A, 0\n      JE .fib_end\n  \n      ; Če"... (* string length 872; truncated *) *)
 
 (* let primer_branje_11 =
-  run fibonacci *)
+  run fibonacci2 *)
 (* val primer_branje_11 : state =
   {instructions =
     [|JMP (Address 20); PUSH (Register C); PUSH (Register B);
