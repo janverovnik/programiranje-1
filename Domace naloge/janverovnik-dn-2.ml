@@ -494,10 +494,10 @@ let primer_izvajanje_11 =
  Napišite funkcijo `compare : state -> int -> int -> state`, ki primerja
  vrednosti dveh števil in ustrezno nastavi zastavici **Zero** in **Carry**. Prvo
  naj nastavi na `true` natanko tedaj, kadar sta števili enaki, drugo pa takrat,
- kadar je prvo število manjše.Funkcija naj vrne novo stanje.
+ kadar je prvo število manjše. Funkcija naj vrne novo stanje.
 [*----------------------------------------------------------------------------*)
 
-let compare state (n : int) (m : int) = if n = m then { state with zero = true} else if n < m then { state with carry = true} else state
+let compare state (n : int) (m : int) = { state with zero = (n = m); carry = (n < m) }
 
 let primer_izvajanje_12 =
   compare empty 24 42 
@@ -613,8 +613,6 @@ let primer_izvajanje_16b =
   fibonacci 10
   |> init
   |> run_program 
-
-let state = { empty with instructions = [| MOV (A, Const 10); MOV (B, Const 10); ADD (A, Register B); MOV (C, Register A); CMP (A, Register C); JE (Address 7); MOV (B, Const 2); HLT |] } |> run_program
 
 (* val primer_izvajanje_16b : state =
   {instructions =
@@ -810,7 +808,7 @@ let parse_instruction labels line =
  funkcija vrne končno stanje.
 [*----------------------------------------------------------------------------*)
 
-let run niz = (*Kr fajn prevede niz v init z instructioni ampak run_program še kr ne dela ok, poprav to!*)
+let run niz = 
   let nek = String.split_on_char '\n' niz |> clean_lines |> parse_labels in
   match nek with |tlist, inst_list -> let nek2 = List.map (parse_instruction tlist) inst_list in
   run_program (init nek2)
@@ -863,8 +861,8 @@ let fibonacci2 = {|
 (* val fibonacci : string =
   "\n  JMP main\n  ; Funkcija, ki izračuna fib(A) in vrednost shrani v register A\n  fib:\n      ; Shranimo vrednosti registrov\n      PUSH C\n      PUSH B\n  \n      ; V C shranimo začetno vrednost A\n      MOV C, A\n  \n      ; Če je A = 0, je to tudi rezultat\n      CMP A, 0\n      JE .fib_end\n  \n      ; Če"... (* string length 872; truncated *) *)
 
-(* let primer_branje_11 =
-  run fibonacci2 *)
+let primer_branje_11 =
+  run fibonacci2 
 (* val primer_branje_11 : state =
   {instructions =
     [|JMP (Address 20); PUSH (Register C); PUSH (Register B);
