@@ -25,3 +25,5 @@ example : (¬ ∀ x, p x) ↔ (∃ x, ¬ p x) :=
 
 example : r ∨ (∀ x, p x) ↔ (∀ x, r ∨ p x) :=
   sorry
+
+-- Deluj
