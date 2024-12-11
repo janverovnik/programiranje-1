@@ -37,6 +37,6 @@ theorem vsoti_sta_enaki : vsota xs = vsota' xs :=
           = x + vsota xs' := by simp [vsota]
           _ = x + vsota' xs' := by rw [ih]
           _ = x + aux xs' 0 := by simp [vsota']
-          _ = aux xs' x := by rw [aux_in_plus]
+          _ = aux xs' x := by sorry -- rw [aux_in_plus]
           _ = aux (x :: xs') 0 := by simp [aux]
           _ = vsota' (x :: xs') := by simp [vsota']
