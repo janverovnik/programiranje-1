@@ -191,6 +191,7 @@ theorem concat2 : concat xs (x :: ys) = concat (concat (xs) [x]) ys :=
     assumption
 
 -- Definirajte repno rekurzivno funkcijo, ki obrne seznam
+
 def reverse' {A : Type} (xs : List A) : List A :=
   let rec aux : List A → List A → List A
     | [], acc => acc
@@ -204,6 +205,7 @@ def reverse'' {A : Type} : List A → List A :=
     | x :: xs' => (reverse'' xs') ++ [x]
 
 -- Dokažite, da je vaša funkcija pravilna
+
 theorem reverse''_eq_reverse'.aux {A : Type} : ∀ {xs acc : List A}, (reverse'' xs) ++ acc = reverse'.aux xs acc :=
   by
     intro xs
@@ -221,6 +223,6 @@ theorem reverse''_eq_reverse' {A : Type} : ∀ {xs : List A}, reverse'' xs = rev
     intro xs
     induction xs with
     | nil => simp [reverse', reverse'', reverse'.aux]
-    | cons x xs' ip =>
+    | cons x xs' =>
       simp [reverse', reverse'', reverse'.aux]
       apply reverse''_eq_reverse'.aux
