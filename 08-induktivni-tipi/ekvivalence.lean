@@ -90,7 +90,7 @@ theorem trd7 {A : Type} {xs : List A} : reverse (reverse xs) = xs :=
 def map {A B : Type} : (A → B) → List A → List B :=
   fun f xs => match xs with
   | [] => []
-  | x xs' => (f x) :: (map xs')
+  | x :: xs' => (f x) :: (map f xs')
 
 
 theorem map_assoc {A B C : Type} {f : A → B} {g : B → C} {xs : List A} : map g (map f xs) = map (g ∘ f) xs :=
@@ -161,8 +161,13 @@ def collect {A : Type} : tree A → List A :=
     | tree.empty => []
     | tree.node x l r => concat (collect l) (concat [x]  (collect r))
 
-theorem trd8 {A : Type} {x : A} {xs ys : List A} : concat xs (x::ys) = concat (concat xs [x]) ys :=
-  sorry
+theorem trd8 {A : Type} {x : A} {xs ys : List A} : concat xs (x :: ys) = concat (concat xs [x]) ys :=
+   by
+    induction xs with
+    | nil => simp [concat]
+    | cons x xs' ip =>
+    simp [concat]
+    assumption
 
 theorem collect_mirror {A : Type} {t : tree A} : collect (mirror t) = reverse (collect t) :=
   sorry
@@ -179,13 +184,43 @@ theorem size_mirror {A : Type} {t : tree A} : size (mirror t) = size t :=
 
 theorem concat2 : concat xs (x :: ys) = concat (concat (xs) [x]) ys :=
   by
-    sorry
+    induction xs with
+    | nil => simp [concat]
+    | cons x xs' ip =>
+    simp [concat]
+    assumption
 
 -- Definirajte repno rekurzivno funkcijo, ki obrne seznam
-def reverse' {A : Type} : List A → List A :=
-  sorry
+def reverse' {A : Type} (xs : List A) : List A :=
+  let rec aux : List A → List A → List A
+    | [], acc => acc
+    | x :: xs', acc => aux xs' (x :: acc)
+  aux xs []
+
+def reverse'' {A : Type} : List A → List A :=
+  fun xs =>
+    match xs with
+    | [] => []
+    | x :: xs' => (reverse'' xs') ++ [x]
 
 -- Dokažite, da je vaša funkcija pravilna
-theorem reverse_eq_reverse' {A : Type} : ∀ {xs : List A}, reverse xs = reverse' xs :=
+theorem reverse''_eq_reverse'.aux {A : Type} : ∀ {xs acc : List A}, (reverse'' xs) ++ acc = reverse'.aux xs acc :=
   by
-    sorry
+    intro xs
+    induction xs with
+    | nil =>
+      simp [reverse'', reverse'.aux]
+    | cons x xs' ip =>
+      intro acc
+      simp [reverse'', reverse'.aux]
+      rw[ip]
+
+
+theorem reverse''_eq_reverse' {A : Type} : ∀ {xs : List A}, reverse'' xs = reverse' xs :=
+  by
+    intro xs
+    induction xs with
+    | nil => simp [reverse', reverse'', reverse'.aux]
+    | cons x xs' ip =>
+      simp [reverse', reverse'', reverse'.aux]
+      apply reverse''_eq_reverse'.aux
