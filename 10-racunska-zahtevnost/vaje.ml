@@ -1,5 +1,11 @@
 (* 
 Natančno definirajte pogoje, da funkcija `f` uredi seznam. 
+
+f uredi seznam xs, kjer imamo neko urejenost =<
+1. f: a' list -> a' list ys = f xs
+2. \forall i ys_(i - 1) =< ys_i
+3. ys je permutacija xs
+
 *)
 
 (*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*]
@@ -18,13 +24,26 @@ Natančno definirajte pogoje, da funkcija `f` uredi seznam.
  - : int list = [7]
 [*----------------------------------------------------------------------------*)
 
+let rec insert y sez =
+  match sez with
+  | [] -> y :: []  
+  | x :: rep -> if x > y then y :: x :: rep else x :: (insert y rep)
+
+(* insert \in O(n) *)
 
 (*----------------------------------------------------------------------------*]
  Prazen seznam je že urejen. Funkcija [insert_sort] uredi seznam tako da
  zaporedoma vstavlja vse elemente seznama v prazen seznam.
 [*----------------------------------------------------------------------------*)
 
+let insert_sort sez =
+  let rec aux sez acc =
+    match sez with
+    | [] -> acc
+    | x :: rep -> aux rep (insert x acc) in
+  aux sez []
 
+(* insert_sort \in O(n^2) *)
 
 (*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*]
  Urejanje z Izbiranjem
