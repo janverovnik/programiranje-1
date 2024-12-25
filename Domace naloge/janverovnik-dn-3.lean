@@ -25,19 +25,31 @@ def vsota_prvih : Nat → Nat := --upam da ni treba repno rekurzivne
 
 #eval vsota_prvih 100
 
+theorem bolecina : (n : Nat) → (n + 1) + (n + 1) = (n + n + 2) :=
+  by
+    intro n
+    rw [<- Nat.mul_two, Nat.add_mul, Nat.one_mul, Nat.mul_two]
+
 theorem gauss : (n : Nat) → 2 * vsota_prvih n = n * (n + 1) :=
   by
     intro n
     induction n with
     | zero => simp [vsota_prvih]
-    | succ m ip => sorry
+    | succ m ip =>
+      simp [vsota_prvih]
+      repeat rw [Nat.mul_add]
+      repeat rw [Nat.mul_one]
+      repeat rw [ip, Nat.add_mul, Nat.mul_add, Nat.mul_one, Nat.two_mul, Nat.one_mul]
+      rw [Nat.add_comm, <- bolecina]
+      simp [Nat.add_assoc]
 
 theorem cisto_pravi_gauss : (n : Nat) → vsota_prvih n = (n * (n + 1)) / 2 :=
   by
     intro n
-    induction n with
-    | zero => simp[vsota_prvih]
-    | succ m ip => sorry
+    calc vsota_prvih n
+        _ = vsota_prvih n * (2 / 2) := by simp [Nat.div_self]
+        _ = (2 * vsota_prvih n) / 2 := by simp [Nat.mul_div_assoc, Nat.mul_comm]
+        _ = (n * (n + 1)) / 2 := by simp [gauss]
 
 
 /------------------------------------------------------------------------------
@@ -62,13 +74,17 @@ def stakni : {A : Type} → {m n : Nat} → Vektor A m → Vektor A n → Vektor
   | .sestavljen x xs' => by rw [Nat.add_right_comm]; exact Vektor.sestavljen x (stakni xs' ys)
 
 def obrni : {A : Type} → {n : Nat} → Vektor A n → Vektor A n :=
-  sorry
+  fun xs => match xs with
+  | .prazen => .prazen
+  | .sestavljen x xs' => stakni (obrni xs') (Vektor.sestavljen x .prazen)
 
-def glava : sorry :=
-  sorry
+def glava : {A : Type} → {n : Nat} → Vektor A (n + 1) →  A :=
+  fun xs => match xs with
+  | .sestavljen x _ => x
 
-def rep : sorry :=
-  sorry
+def rep : {A : Type} → {n : Nat} → Vektor A (n + 1) →  Vektor A n :=
+  fun xs => match xs with
+  | .sestavljen _ xs' => xs'
 
 /------------------------------------------------------------------------------
  ## Predikatni račun
@@ -79,19 +95,47 @@ def rep : sorry :=
  Za dokaz potrebujete klasično logiko, torej nekaj iz modula `Classical`.
 ------------------------------------------------------------------------------/
 
-theorem forall_implies : {A : Type} → {P Q : A → Prop} →
-  (∀ x, (P x → Q x)) → (∀ x, P x) → (∀ x, Q x) := by
-  sorry
+theorem forall_implies : {A : Type} → {P Q : A → Prop} → (∀ x, (P x → Q x)) → (∀ x, P x) → (∀ x, Q x) :=
+  by
+    intros A P Q
+    intro h1 h2
+    intro x
+    apply h1
+    apply h2
 
-theorem forall_implies' : {A : Type} → {P : Prop} → {Q : A → Prop} →
-  (∀ x, (P → Q x)) ↔ (P → ∀ x, Q x) := by
-  sorry
+theorem forall_implies' : {A : Type} → {P : Prop} → {Q : A → Prop} → (∀ x, (P → Q x)) ↔ (P → ∀ x, Q x) :=
+  by
+    intros A P Q
+    constructor
+    -- 1. smer
+    intro h1 h2
+    intro x
+    apply h1
+    exact h2
+    -- 2. smer
+    intro h1 x h2
+    apply h1
+    exact h2
 
 theorem paradoks_pivca :
   {G : Type} → {P : G → Prop} →
   (g : G) →  -- (g : G) pove, da je v gostilni vsaj en gost
-  ∃ (p : G), (P p → ∀ (x : G), P x) := by
-  sorry
+  ∃ (p : G), (P p → ∀ (x : G), P x) :=
+  by
+    intro G P gost
+    have H := Classical.forall_or_exists_not P
+    cases H with
+    | inl h =>
+    constructor
+    intro _
+    exact h
+    exact gost
+    | inr h =>
+    apply Exists.elim h
+    intro nepivc nepije
+    exists nepivc
+    intro pije
+    contradiction
 
 /------------------------------------------------------------------------------
  ## Dvojiška drevesa
@@ -135,7 +179,7 @@ theorem zrcali_zrcali : {A : Type} → (t : Drevo A) → zrcali (zrcali t) = t :
     induction t with
       | prazno => simp [zrcali]
       | sestavljeno l x d ipl ipd =>
-      simp[zrcali]
+      simp [zrcali]
    -- trivial
       constructor
       exact ipl
@@ -146,7 +190,7 @@ theorem visina_zrcali : {A : Type} → (t : Drevo A) → visina (zrcali t) = vis
     intros A t
     induction t with
     | prazno => simp[zrcali]
-    | sestavljeno l x d ipl ipd =>
+    | sestavljeno l _ d ipl ipd =>
       simp [zrcali, visina, ipl, ipd, Nat.max_comm]
 
 theorem elementi_elementi'.aux {A : Type} : ∀ {t : Drevo A} {acc : List A}, elementi t ++ acc = elementi'.aux t acc :=
@@ -157,14 +201,11 @@ theorem elementi_elementi'.aux {A : Type} : ∀ {t : Drevo A} {acc : List A}, el
     | sestavljeno l x d ipl ipd =>
       intro acc
       simp [elementi, elementi'.aux, ipd]
-      rw[ipl]
+      rw [ipl]
 
 theorem elementi_elementi' : {A : Type} → (t : Drevo A) → elementi t = elementi' t :=
   by
     intros A t
-    induction t with
-    | prazno => simp [elementi, elementi', elementi'.aux]
-    | sestavljeno l x d =>
-       simp [elementi, elementi']
-       rw [<- elementi_elementi'.aux]
-       simp[elementi]
+    simp [elementi, elementi']
+    rw [<- elementi_elementi'.aux]
+    simp [elementi]
