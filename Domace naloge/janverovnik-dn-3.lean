@@ -62,7 +62,7 @@ theorem cisto_pravi_gauss : (n : Nat) → vsota_prvih n = (n * (n + 1)) / 2 :=
  Napišite funkcijo `obrni`, ki vrne na glavo obrnjen vektor, ter funkciji
  `glava` in `rep`, ki varno vrneta glavo in rep _nepraznega_ seznama.
 ------------------------------------------------------------------------------/
-
+--
 inductive Vektor : Type → Nat → Type where
   | prazen : {A : Type} → Vektor A 0
   | sestavljen : {A : Type} → {n : Nat} → A → Vektor A n → Vektor A (n + 1)
