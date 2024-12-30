@@ -1,4 +1,4 @@
--- set_option autoImplicit false
+set_option autoImplicit false
 
 /------------------------------------------------------------------------------
  ## Naravna števila
