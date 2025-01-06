@@ -64,6 +64,7 @@ let insert_sort sez =
 [*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*)
 
 
+
 (*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*]
  Urejanje z Izbiranjem na Tabelah
 [*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)
@@ -91,26 +92,67 @@ let insert_sort sez =
  - : int array = [|0; 4; 2; 3; 1|]
 [*----------------------------------------------------------------------------*)
 
+let swap arr i j =
+  let prva = arr.(i) in
+  let druga = arr.(j) in
+  Array.set arr i druga ; 
+  Array.set arr j prva 
+  
 
 (*----------------------------------------------------------------------------*]
  Funkcija [index_min a lower upper] poišče indeks najmanjšega elementa tabele
  [a] med indeksoma [lower] and [upper] (oba indeksa sta vključena).
  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
- index_min [|0; 2; 9; 3; 6|] 2 4 = 4
+ index_min [|0; 2; 9; 3; 6|] 2 4 = 3
 [*----------------------------------------------------------------------------*)
 
+let rec find a x n = if a.(n) = x then n else find a x (n + 1)
+
+let index_min1 arr lower upper =
+  let novarr = Array.make (upper - lower + 1) 1 in
+  for i = lower to upper do 
+    Array.set novarr (i - lower) arr.(i) 
+    done ;
+  Array.sort (fun x y -> if x = y then 0 else if x > y then 3 else -3) (Array.copy novarr) ;
+  find arr novarr.(0) 0
+  
+
+let index_min arr lower upper =
+  let iskani_indeks = ref lower in
+  let najmanjsi = ref arr.(lower) in
+  for i = lower to upper do
+    if arr.(i) < !najmanjsi then (
+      najmanjsi := arr.(i) ;
+      iskani_indeks := i;
+      ()
+    )
+  else ()
+  done ;
+  !iskani_indeks
 
 (*----------------------------------------------------------------------------*]
  Funkcija [selection_sort_array] implementira urejanje z izbiranjem na mestu. 
 [*----------------------------------------------------------------------------*)
 
+let selection_sort_array arr =
+  if Array.length arr = 0 then arr else
+    (
+      for i = 0 to Array.length arr - 1 do
+        swap arr i (index_min arr i (Array.length arr - 1))
+      done;
+      arr
+    )
 
 (*----------------------------------------------------------------------------*]
  Funkcija [min_and_rest list] vrne par [Some (z, list')] tako da je [z]
  najmanjši element v [list] in seznam [list'] enak [list] z odstranjeno prvo
  pojavitvijo elementa [z]. V primeru praznega seznama vrne [None]. 
 [*----------------------------------------------------------------------------*)
-
+let min_sez sez =
+  match sez with
+  |[] -> None
+  |x :: xs -> min
+let min_and_rest sez
 (*----------------------------------------------------------------------------*]
  Funkcija [selection_sort] je implementacija zgoraj opisanega algoritma.
  Namig: Uporabi [min_and_rest] iz prejšnje naloge.
