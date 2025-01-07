@@ -50,5 +50,19 @@ module Tape : TAPE = struct
   |([], _) | (_, []) -> failwith"seznami ne morejo biti prazni"
   |(levi_sez, y :: rep) -> (levi_sez, ch :: rep)
 
-  let print = failwith "todo"
+  let print tape = match tape with
+    |([], _) | (_, []) -> failwith"seznami ne morejo biti prazni"
+    |(x :: xs, y :: ys)->
+    let rec aux levi_sez desni_sez acc pointer =
+      match levi_sez, desni_sez with
+      |[], [] -> (acc, pointer)
+      |[], y :: ys -> aux [] ys (acc ^ Char.escaped y) pointer
+      |' ' :: [], [] -> aux [' '] [] acc (pointer ^ "^")
+      |x :: xs, [] -> aux xs [] (Char.escaped x ^ acc) (pointer ^ " ")
+      |' ' :: [], y :: ys -> aux [] ys (acc ^ Char.escaped y) (pointer ^ "^")
+      |x :: xs, y :: ys -> aux xs ys (Char.escaped x ^ acc ^ Char.escaped y) (pointer ^ " ") in
+    match aux (x :: xs) (y :: ys) "" "" with |(acc, pointer) ->
+      print_endline (String.trim acc);
+      print_endline pointer
+
 end
