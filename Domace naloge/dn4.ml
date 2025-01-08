@@ -20,7 +20,8 @@ module Tape : TAPE = struct
                               glava levega seznama, torej znak za glavo stroja
   desni_sez : y_1 :: y_2 :: ... :: []
                 ^
-  glava desnega seznama, torej glava stroja *)
+  glava desnega seznama, torej glava stroja 
+  Tak pristop ne dopušča dvojnih presledkov med nizi, saj jih takoj pobriše v enojni, kar lahko morda vidimo kot prednost.*)
   type t = (char list) * (char list)
 
   let make niz = 
