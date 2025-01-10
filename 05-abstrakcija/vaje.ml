@@ -17,7 +17,7 @@
 
 module type NAT = sig
   type t
-  val eq  : t -> t -> bool
+  val eq : t -> t -> bool
   val zero : t
   val enka : t
   val ( +++ ) : t -> t -> t
