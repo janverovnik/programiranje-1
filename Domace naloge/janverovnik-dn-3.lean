@@ -1,4 +1,4 @@
--- set_option autoImplicit false
+set_option autoImplicit false
 
 /------------------------------------------------------------------------------
  ## Naravna števila
@@ -17,7 +17,7 @@
 
 -- def vsota_prvih : Nat → Nat := fun n => aux n 0
 
-def vsota_prvih : Nat → Nat := --upam da ni treba repno rekurzivne
+def vsota_prvih : Nat → Nat :=
   fun n =>
     match n with
     | Nat.zero => 0
@@ -189,7 +189,7 @@ theorem visina_zrcali : {A : Type} → (t : Drevo A) → visina (zrcali t) = vis
   by
     intros A t
     induction t with
-    | prazno => simp[zrcali]
+    | prazno => simp [zrcali]
     | sestavljeno l _ d ipl ipd =>
       simp [zrcali, visina, ipl, ipd, Nat.max_comm]
 
@@ -206,6 +206,6 @@ theorem elementi_elementi'.aux {A : Type} : ∀ {t : Drevo A} {acc : List A}, el
 theorem elementi_elementi' : {A : Type} → (t : Drevo A) → elementi t = elementi' t :=
   by
     intros A t
-    simp [elementi, elementi']
+    simp [elementi']
     rw [<- elementi_elementi'.aux]
     simp [elementi]
