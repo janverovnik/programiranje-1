@@ -148,6 +148,16 @@ AB!DE
  kode.
 [*----------------------------------------------------------------------------*)
 
+module StrCh = (*hvala Filip*)
+  struct
+    type t = string * char
+    let compare (x0,y0) (x1,y1) =
+      match Stdlib.compare x0 x1 with
+        | 0 -> Stdlib.compare y0 y1
+        | c -> c
+  end
+
+module Slovar = Map.Make(StrCh)
 
 module type MACHINE = sig
   type t
@@ -164,17 +174,17 @@ module Machine : MACHINE = struct
 
   let nov_manjsi state1 ch1 state2 ch2 = (*I assume da kle ne bodo kkšna grozodejanja kukr dve različni prehodni, ki vzameta isto stanje pa char :3*)
     if state1 <> state2 then state1 < state2 else ch1 < ch2 
-    
+
   type t = {
     stanja : state list;
     zac_st : state;
-    preh_fun : (state * char * state * char * direction) tree;
+    preh_fun : (state * char * state * char * direction) list;
   }
 
-  let make state st_list = {stanja = state :: st_list; zac_st = state; preh_fun = Prazno}
+  let make state st_list = {stanja = state :: st_list; zac_st = state; preh_fun = []}
   let initial stroj = stroj.zac_st
 
-  let add_transition state ch state' ch' dir stroj = 
+  (*let add_transition state ch state' ch' dir stroj = 
     let rec dodaj state ch state' ch' dir drevo = match drevo with
       |Prazno -> make_tree (state, ch, state', ch', dir)
       |Sestavljeno (l, (state', ch', a, b, c), d) -> (
@@ -183,11 +193,11 @@ module Machine : MACHINE = struct
         Sestavljeno (l, (state', ch', a, b, c), dodaj state ch state' ch' dir d) 
        ) in 
     let drevo = dodaj state ch state' ch' dir stroj.preh_fun in
-    {stroj with preh_fun = drevo} 
+    {stroj with preh_fun = drevo} *)
 
-  (*let add_transition state ch state' ch' dir stroj = {stroj with preh_fun = (state, ch, state', ch', dir) :: stroj.preh_fun} *)
+  let add_transition state ch state' ch' dir stroj = {stroj with preh_fun = (state, ch, state', ch', dir) :: stroj.preh_fun} 
 
-  let step : t -> state -> Tape.t -> (state * Tape.t) option = fun stroj state tape ->
+ (* let step : t -> state -> Tape.t -> (state * Tape.t) option = fun stroj state tape ->
     let rec najdi state a drevo = match drevo with
       |Prazno -> None
       |Sestavljeno (l, x, d) -> (
@@ -199,16 +209,16 @@ module Machine : MACHINE = struct
     match najdi state (Tape.read tape) stroj.preh_fun with
       |None -> None
       |Some (state', ch, nov_state, nov_ch, dir) -> 
-        Some (nov_state, Tape.(tape |> write nov_ch |> move dir))
+        Some (nov_state, Tape.(tape |> write nov_ch |> move dir)) *)
     
-  (*let step : t -> state -> Tape.t -> (state * Tape.t) option = fun stroj state tape ->
+  let step : t -> state -> Tape.t -> (state * Tape.t) option = fun stroj state tape ->
     let rec najdi state a list = match list with
       |[] -> None
       |x :: rep -> match x with |(state', ch, n, m, dir) -> if state' = state && ch = a then Some x else najdi state a rep in
     match najdi state (Tape.read tape) stroj.preh_fun with
       |None -> None
       |Some (state', ch, nov_state, nov_ch, dir) -> 
-        Some (nov_state, Tape.(tape |> write nov_ch |> move dir)) *)
+        Some (nov_state, Tape.(tape |> write nov_ch |> move dir)) 
 end
 
 (*----------------------------------------------------------------------------*
@@ -256,8 +266,8 @@ let slow_run stroj niz =
       ) in
   delaj stroj zac_st zac_tape
 
-(*let primer_slow_run =
-  slow_run binary_increment "1011"*)
+let primer_slow_run =
+  slow_run binary_increment "1011"
 (*
 1011
 ^
