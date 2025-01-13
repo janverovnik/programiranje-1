@@ -52,13 +52,13 @@ module Tape : TAPE = struct
                                               ^                                       
                         glava levega seznama, torej znak za glavo stroja
   desni_sez : y_1 :: y_2 :: ... :: []
-                ^
+               ^
   glava desnega seznama, torej glava stroja 
   Tak pristop ne dopušča dvojnih presledkov med nizi, saj jih takoj pobriše v enojni, kar lahko morda vidimo kot prednost.*)
 
   type t = (char list) * (char list)
 
-  let make niz = 
+  let make niz =
     let desni_sez = List.of_seq (String.to_seq (niz ^ " ")) in
     ([' '], desni_sez)
 
@@ -158,16 +158,57 @@ module type MACHINE = sig
 end
 
 module Machine : MACHINE = struct
+
   type 'a tree = Prazno | Sestavljeno of 'a tree * 'a * 'a tree
+  let make_tree a = Sestavljeno (Prazno, a, Prazno)
+
+  let nov_manjsi state1 ch1 state2 ch2 = (*I assume da kle ne bodo kkšna grozodejanja kukr dve različni prehodni, ki vzameta isto stanje pa char :3*)
+    if state1 <> state2 then state1 < state2 else ch1 < ch2 
+    
   type t = {
     stanja : state list;
     zac_st : state;
-    preh_fun : (char * state -> char * state * direction) tree;
+    preh_fun : (state * char * state * char * direction) tree;
   }
-  let make state st_list = {stanja = st_list; zac_st = state; preh_fun = Prazno}
+
+  let make state st_list = {stanja = state :: st_list; zac_st = state; preh_fun = Prazno}
   let initial stroj = stroj.zac_st
-  let add_transition _ _ _ _ _ _ = failwith ""
-  let step _ _ _ = failwith ""
+
+  let add_transition state ch state' ch' dir stroj = 
+    let rec dodaj state ch state' ch' dir drevo = match drevo with
+      |Prazno -> make_tree (state, ch, state', ch', dir)
+      |Sestavljeno (l, (state', ch', a, b, c), d) -> (
+        if nov_manjsi state ch state' ch' then 
+        Sestavljeno (dodaj state ch state' ch' dir l, (state', ch', a, b, c), d) else
+        Sestavljeno (l, (state', ch', a, b, c), dodaj state ch state' ch' dir d) 
+       ) in 
+    let drevo = dodaj state ch state' ch' dir stroj.preh_fun in
+    {stroj with preh_fun = drevo} 
+
+  (*let add_transition state ch state' ch' dir stroj = {stroj with preh_fun = (state, ch, state', ch', dir) :: stroj.preh_fun} *)
+
+  let step : t -> state -> Tape.t -> (state * Tape.t) option = fun stroj state tape ->
+    let rec najdi state a drevo = match drevo with
+      |Prazno -> None
+      |Sestavljeno (l, x, d) -> (
+        match x with |(state', ch, n, m, dir) ->
+          if state = state' && a = ch then Some x else
+          if nov_manjsi state a state' ch then najdi state a l 
+          else najdi state a d 
+      ) in
+    match najdi state (Tape.read tape) stroj.preh_fun with
+      |None -> None
+      |Some (state', ch, nov_state, nov_ch, dir) -> 
+        Some (nov_state, Tape.(tape |> write nov_ch |> move dir))
+    
+  (*let step : t -> state -> Tape.t -> (state * Tape.t) option = fun stroj state tape ->
+    let rec najdi state a list = match list with
+      |[] -> None
+      |x :: rep -> match x with |(state', ch, n, m, dir) -> if state' = state && ch = a then Some x else najdi state a rep in
+    match najdi state (Tape.read tape) stroj.preh_fun with
+      |None -> None
+      |Some (state', ch, nov_state, nov_ch, dir) -> 
+        Some (nov_state, Tape.(tape |> write nov_ch |> move dir)) *)
 end
 
 (*----------------------------------------------------------------------------*
@@ -177,7 +218,7 @@ end
 
 let binary_increment =
   Machine.(
-    make "right" [ "carry"; "done" ]
+    make "right" [ "carry"; "done" ] 
     |> add_transition "right" '1' "right" '1' Right
     |> add_transition "right" '0' "right" '0' Right
     |> add_transition "right" ' ' "carry" ' ' Left
@@ -196,34 +237,51 @@ let binary_increment =
  izvajanja.
 [*----------------------------------------------------------------------------*)
 
-let slow_run _ _ = ()
+let slow_run stroj niz =
+  let zac_tape = Tape.make niz in
+  let zac_st = Machine.initial stroj in
+  let rec delaj stroj state tape =
+    if state = "done" then 
+      (
+      Tape.print tape;
+      print_endline "done";
+      )
+    else
+      (
+      Tape.print tape;
+      print_endline state;
+      match Machine.step stroj state tape with
+      |None -> failwith"Command no work"
+      |Some (nov_state, nov_trak) -> delaj stroj nov_state nov_trak
+      ) in
+  delaj stroj zac_st zac_tape
 
-let primer_slow_run =
-  slow_run binary_increment "1011"
+(*let primer_slow_run =
+  slow_run binary_increment "1011"*)
 (*
 1011
 ^
 right
 1011
-  ^
+ ^
 right
 1011
   ^
 right
 1011
-    ^
+   ^
 right
 1011
     ^
 right
 1011
-    ^
+   ^
 carry
 1010
   ^
 carry
 1000
-  ^
+ ^
 carry
 1100
 ^
@@ -231,10 +289,24 @@ done
 *)
 (* val primer_slow_run : unit = () *)
 
-let speed_run _ _ = ()
+let speed_run stroj niz =
+  let tape = ref (Tape.make niz) in
+  let current = ref (Machine.initial stroj) in
+  while !current <> "done" do
+    match Machine.step stroj !current !tape with
+      |None -> failwith"a"
+      |Some (nov_state, nov_trak) -> 
+        current := nov_state;
+        tape := nov_trak;
+    ()
+  done;
+  Tape.print !tape;
+  print_endline "done"
 
-let primer_speed_run =
-  speed_run binary_increment "1011"
+  
+
+(*let primer_speed_run =
+  speed_run binary_increment "1011"*)
 (*
 1100
 ^
@@ -297,7 +369,7 @@ let primer_speed_run =
 
 let reverse = ()
 
-let primer_reverse = speed_run reverse "0000111001"
+(*let primer_reverse = speed_run reverse "0000111001"*)
 (* 
 1001110000          
 ^
@@ -314,7 +386,7 @@ let primer_reverse = speed_run reverse "0000111001"
 
 let duplicate = ()
 
-let primer_duplicate = speed_run duplicate "010011"
+(*let primer_duplicate = speed_run duplicate "010011"*)
 (* 
 001100001111       
 ^
@@ -332,7 +404,7 @@ let primer_duplicate = speed_run duplicate "010011"
 
 let to_unary = ()
 
-let primer_to_unary = speed_run to_unary "1010"
+(*let primer_to_unary = speed_run to_unary "1010"*)
 (* 
 1111111111
 ^
@@ -351,7 +423,7 @@ let primer_to_unary = speed_run to_unary "1010"
 
 let to_binary = ()
 
-let primer_to_binary = speed_run to_binary (String.make 42 '1')
+(*let primer_to_binary = speed_run to_binary (String.make 42 '1')*)
 (* 
 101010                                           
 ^
