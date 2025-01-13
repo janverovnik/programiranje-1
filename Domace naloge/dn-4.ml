@@ -89,7 +89,7 @@ module Tape : TAPE = struct
     if levi_sez = [] then (' ' :: [], ch :: rep) else 
     if rep = [] then (levi_sez, ch :: ' ' :: []) else (levi_sez, ch :: rep)
 
-  let print tape = 
+(*let print tape = 
     let rec aux levi_sez desni_sez acc pointer =
       match levi_sez, desni_sez with
       |[], [] -> (acc, pointer)
@@ -103,9 +103,14 @@ module Tape : TAPE = struct
     |(levi_sez, desni_sez) ->
     match aux levi_sez desni_sez "" "" with |(acc, pointer) ->
       print_endline acc;
-      print_endline pointer
+      print_endline pointer*)
+  
+let print tape = match tape with |(levi_sez, desni_sez) ->
+  let left = String.trim (String.concat "" (List.rev_map (Char.escaped) levi_sez)) in
+  let right = String. trim (String.concat "" (List.map (Char.escaped) desni_sez)) in
+  let pointer = String.make (String.length left) ' ' ^ "^" in
+  Printf.printf "%s\n%s\n" (left ^ right) pointer
       
-
 end
 
 let primer_trak = Tape.(
@@ -169,56 +174,18 @@ end
 
 module Machine : MACHINE = struct
 
-  type 'a tree = Prazno | Sestavljeno of 'a tree * 'a * 'a tree
-  let make_tree a = Sestavljeno (Prazno, a, Prazno)
-
-  let nov_manjsi state1 ch1 state2 ch2 = (*I assume da kle ne bodo kkšna grozodejanja kukr dve različni prehodni, ki vzameta isto stanje pa char :3*)
-    if state1 <> state2 then state1 < state2 else ch1 < ch2 
-
   type t = {
     stanja : state list;
     zac_st : state;
-    preh_fun : (state * char * state * char * direction) list;
+    preh_fun : (state * char * direction) Slovar.t;
   }
 
-  let make state st_list = {stanja = state :: st_list; zac_st = state; preh_fun = []}
+  let make state st_list = {stanja = state :: st_list; zac_st = state; preh_fun = Slovar.empty}
   let initial stroj = stroj.zac_st
+  let add_transition state ch state' ch' dir stroj = {stroj with preh_fun = Slovar.add (state, ch) (state', ch', dir) stroj.preh_fun} 
+  let step stroj state tape = match Slovar.find (state, Tape.read tape) stroj.preh_fun with
+      |(nov_state, nov_ch, dir) -> Some (nov_state, Tape.(tape |> write nov_ch |> move dir)) 
 
-  (*let add_transition state ch state' ch' dir stroj = 
-    let rec dodaj state ch state' ch' dir drevo = match drevo with
-      |Prazno -> make_tree (state, ch, state', ch', dir)
-      |Sestavljeno (l, (state', ch', a, b, c), d) -> (
-        if nov_manjsi state ch state' ch' then 
-        Sestavljeno (dodaj state ch state' ch' dir l, (state', ch', a, b, c), d) else
-        Sestavljeno (l, (state', ch', a, b, c), dodaj state ch state' ch' dir d) 
-       ) in 
-    let drevo = dodaj state ch state' ch' dir stroj.preh_fun in
-    {stroj with preh_fun = drevo} *)
-
-  let add_transition state ch state' ch' dir stroj = {stroj with preh_fun = (state, ch, state', ch', dir) :: stroj.preh_fun} 
-
- (* let step : t -> state -> Tape.t -> (state * Tape.t) option = fun stroj state tape ->
-    let rec najdi state a drevo = match drevo with
-      |Prazno -> None
-      |Sestavljeno (l, x, d) -> (
-        match x with |(state', ch, n, m, dir) ->
-          if state = state' && a = ch then Some x else
-          if nov_manjsi state a state' ch then najdi state a l 
-          else najdi state a d 
-      ) in
-    match najdi state (Tape.read tape) stroj.preh_fun with
-      |None -> None
-      |Some (state', ch, nov_state, nov_ch, dir) -> 
-        Some (nov_state, Tape.(tape |> write nov_ch |> move dir)) *)
-    
-  let step : t -> state -> Tape.t -> (state * Tape.t) option = fun stroj state tape ->
-    let rec najdi state a list = match list with
-      |[] -> None
-      |x :: rep -> match x with |(state', ch, n, m, dir) -> if state' = state && ch = a then Some x else najdi state a rep in
-    match najdi state (Tape.read tape) stroj.preh_fun with
-      |None -> None
-      |Some (state', ch, nov_state, nov_ch, dir) -> 
-        Some (nov_state, Tape.(tape |> write nov_ch |> move dir)) 
 end
 
 (*----------------------------------------------------------------------------*
@@ -262,7 +229,8 @@ let slow_run stroj niz =
       print_endline state;
       match Machine.step stroj state tape with
       |None -> failwith"Command no work"
-      |Some (nov_state, nov_trak) -> delaj stroj nov_state nov_trak
+      |Some (nov_state, nov_trak) ->
+      delaj stroj nov_state nov_trak
       ) in
   delaj stroj zac_st zac_tape
 
