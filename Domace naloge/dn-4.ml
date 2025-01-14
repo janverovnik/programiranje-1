@@ -312,16 +312,46 @@ let speed_run stroj niz =
  Implementacijo in tipe ugotovite sami.
 [*----------------------------------------------------------------------------*)
 
-(* let binary_increment' =
+let move dir = ('.', "", dir)
+let switch_and_move state dir = ('.', state, dir)
+let write_and_move ch dir = (ch, "", dir)
+let write_switch_and_move ch state dir = (ch, state, dir)
+
+let for_character ch f = match f with |(chw, swtate, dir) -> 
+  if chw = '.' then ([ch], [ch], swtate, dir) else ([ch], [chw], swtate, dir)
+let for_characters str f = match f with |(chw, swtate, dir) ->
+  let mrow = List.of_seq (String.to_seq str) in
+  if chw = '.' then (mrow, mrow, swtate, dir) else (mrow, [chw], swtate, dir)
+
+let rec dodaj mrow1 state chw nov_state dir stroj = match mrow1 with
+  |[] -> stroj
+  |x :: rep -> dodaj rep state chw nov_state dir (Machine.add_transition state x nov_state chw dir stroj)
+
+let rec dodajaj mrow1 state nov_state dir stroj = match mrow1 with
+  |[] -> stroj
+  |x :: rep -> dodajaj rep state nov_state dir (Machine.add_transition state x nov_state x dir stroj)
+
+let rec for_state state dlist stroj = match dlist with
+  |[] -> stroj
+  |x :: rep -> match x with |(chs1, chs2, swtate, dir) ->
+    let nov_state = if swtate = "" then state else swtate in
+    match chs1, chs2 with 
+    |[], [] -> failwith"ta seznam nikoli ni prazen"
+    |[ch], [chw] -> for_state state rep (Machine.add_transition state ch nov_state chw dir stroj)
+    |mrow1, [chw] -> for_state state rep (dodaj mrow1 state chw nov_state dir stroj)
+    |mrow, _ -> for_state state rep (dodajaj mrow state nov_state dir stroj)
+  
+
+ let binary_increment' =
   Machine.make "right" ["carry"; "done"]
   |> for_state "right" [
     for_characters "01" @@ move Right;
     for_character ' ' @@ switch_and_move "carry" Left
   ]
   |> for_state "carry" [
-    for_character '1' @@ switch_and_move "carry" Left;
+    for_character '1' @@ write_and_move '0' Left;  (*Tukile ste mel narobe napisan: switch_and_move "carry" Left, kjer bi moralo pisati: write_and_move '0' Left*)
     for_characters "0 " @@ write_switch_and_move '1' "done" Left
-  ]   *)
+  ]   
 (* val binary_increment' : Machine.t = <abstr> *)
 
 (*----------------------------------------------------------------------------*
@@ -345,7 +375,7 @@ let speed_run stroj niz =
  Sestavite Turingov stroj, ki začetni niz obrne na glavo.
 [*----------------------------------------------------------------------------*)
 
-let reverse = ()
+(*let reverse = ()*)
 
 (*let primer_reverse = speed_run reverse "0000111001"*)
 (* 
@@ -362,7 +392,7 @@ let reverse = ()
  Sestavite Turingov stroj, ki podvoji začetni niz.
 [*----------------------------------------------------------------------------*)
 
-let duplicate = ()
+(*let duplicate = ()*)
 
 (*let primer_duplicate = speed_run duplicate "010011"*)
 (* 
@@ -380,7 +410,7 @@ let duplicate = ()
  v dvojiškem zapisu, na koncu pa naj bo na traku zapisanih natanko $n$ enic.
 [*----------------------------------------------------------------------------*)
 
-let to_unary = ()
+(*let to_unary = ()*)
 
 (*let primer_to_unary = speed_run to_unary "1010"*)
 (* 
@@ -399,7 +429,7 @@ let to_unary = ()
  dvojiškem zapisu.
 [*----------------------------------------------------------------------------*)
 
-let to_binary = ()
+(*let to_binary = ()*)
 
 (*let primer_to_binary = speed_run to_binary (String.make 42 '1')*)
 (* 
