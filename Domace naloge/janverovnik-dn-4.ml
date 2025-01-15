@@ -324,7 +324,6 @@ let rec for_state state dlist stroj = match dlist with
     let nov_state = if swtate = "" then state else swtate in
     match chs1, chs2 with 
     |[], [] -> failwith"ta seznam nikoli ni prazen"
-    (*|[ch], [chw] -> for_state state rep (Machine.add_transition state ch nov_state chw dir stroj)*)
     |mrow1, [chw] -> for_state state rep (dodaj mrow1 state chw nov_state dir stroj)
     |mrow, _ -> for_state state rep (dodajaj mrow state nov_state dir stroj)
   
@@ -340,7 +339,7 @@ let binary_increment' =
   ]  
 (* val binary_increment' : Machine.t = <abstr> *)
 
-let primer_binary_increment' = slow_run binary_increment' "1011"
+(*let primer_binary_increment' = slow_run binary_increment' "1011"*)
 
 (*----------------------------------------------------------------------------*
  ## Primeri Turingovih strojev
@@ -363,8 +362,33 @@ let primer_binary_increment' = slow_run binary_increment' "1011"
  Sestavite Turingov stroj, ki začetni niz obrne na glavo.
 [*----------------------------------------------------------------------------*)
 
-(*let reverse = ()*)
+let reverse = 
+  Machine.make "preberi" ["right"; "preberi"; "je_0"; "je_1"; "done"]
+  |> for_state "preberi" [
+    for_character '1' @@ write_switch_and_move 'c' "je_1" Left;
+    for_character '0' @@ write_switch_and_move 'c' "je_0" Left;
+    for_character 'c' @@ move Right;
+    for_character ' ' @@ switch_and_move "konec!" Left
+  ]
+  |> for_state "je_1" [
+    for_characters "01c" @@ move Left;
+    for_character ' ' @@ write_switch_and_move '1' "right" Right;
+  ]
+  |> for_state "je_0" [
+    for_characters "01c" @@ move Left;
+    for_character ' ' @@ write_switch_and_move '0' "right" Right;
+  ]
+  |> for_state "right"[
+    for_characters "01" @@ move Right;
+    for_character 'c' @@ switch_and_move "preberi" Right
+  ]
+  |> for_state "konec!" [
+    for_character 'c' @@ write_and_move ' ' Left;
+    for_characters "01" @@ move Left;
+    for_character ' ' @@ switch_and_move "done" Right
+  ]
 
+let primer_reverse = slow_run reverse "0000111001"
 (* 
 1001110000          
 ^
