@@ -363,7 +363,7 @@ let binary_increment' =
 [*----------------------------------------------------------------------------*)
 
 let reverse = 
-  Machine.make "preberi" ["right"; "preberi"; "je_0"; "je_1"; "done"]
+  Machine.make "preberi" ["right"; "preberi"; "je_0"; "je_1"; "konec!"; "done"]
   |> for_state "preberi" [
     for_character '1' @@ write_switch_and_move 'c' "je_1" Left;
     for_character '0' @@ write_switch_and_move 'c' "je_0" Left;
