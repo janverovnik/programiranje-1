@@ -90,10 +90,14 @@ module Tape : TAPE = struct
     if rep = [] then (levi_sez, ch :: ' ' :: []) else (levi_sez, ch :: rep)
   
 let print tape = match tape with |(levi_sez, desni_sez) ->
-  let left = String.trim (String.concat "" (List.rev_map (Char.escaped) levi_sez)) in
-  let right = String. trim (String.concat "" (List.map (Char.escaped) desni_sez)) in
-  let pointer = String.make (String.length left) ' ' ^ "^" in
-  Printf.printf "%s\n%s\n" (left ^ right) pointer
+  if levi_sez = [] then 
+    let right = String.concat "" (List.map (Char.escaped) desni_sez) in
+    Printf.printf "%s\n%s\n" right "^"
+  else
+    let left = String.trim (String.concat "" (List.rev_map (Char.escaped) levi_sez)) in
+    let right = String.trim (String.concat "" (List.map (Char.escaped) desni_sez)) in
+    let pointer = String.make (String.length left) ' ' ^ "^" in
+    Printf.printf "%s\n%s\n" (left ^ right) pointer
       
 end
 
@@ -167,8 +171,9 @@ module Machine : MACHINE = struct
   let make state st_list = {stanja = state :: st_list; zac_st = state; preh_fun = Slovar.empty}
   let initial stroj = stroj.zac_st
   let add_transition state ch state' ch' dir stroj = {stroj with preh_fun = Slovar.add (state, ch) (state', ch', dir) stroj.preh_fun} 
-  let step stroj state tape = match Slovar.find (state, Tape.read tape) stroj.preh_fun with
-      |(nov_state, nov_ch, dir) -> Some (nov_state, Tape.(tape |> write nov_ch |> move dir)) 
+  let step stroj state tape = match Slovar.find_opt (state, Tape.read tape) stroj.preh_fun with
+      |None -> None
+      |Some (nov_state, nov_ch, dir) -> Some (nov_state, Tape.(tape |> write nov_ch |> move dir)) 
 
 end
 
@@ -214,7 +219,7 @@ let slow_run stroj niz =
       Tape.print tape;
       print_endline state;
       match Machine.step stroj state tape with
-      |None -> failwith"Command no work"
+      |None -> failwith"Command not found/missing"
       |Some (nov_state, nov_trak) ->
       delaj stroj nov_state nov_trak
       ) in
@@ -388,7 +393,7 @@ let reverse =
     for_character ' ' @@ switch_and_move "done" Right
   ]
 
-let primer_reverse = slow_run reverse "0000111001"
+(*let primer_reverse = slow_run reverse "0000111001"*)
 (* 
 1001110000          
 ^
@@ -403,8 +408,39 @@ let primer_reverse = slow_run reverse "0000111001"
  Sestavite Turingov stroj, ki podvoji začetni niz.
 [*----------------------------------------------------------------------------*)
 
-(*let duplicate = ()*)
-
+let duplicate = Machine.make "init" ["init"; "preberi"; "preberi"; "1.0"; "2.0"; "1.1"; "2.1"; "konec!"; "done"]
+  |> for_state "init"[
+    for_character '0' @@ write_and_move 'a' Right;
+    for_character '1' @@ write_and_move 'b' Right;
+    for_character ' ' @@ switch_and_move "preberi" Left
+  ]
+  |> for_state "preberi" [
+    for_character 'a' @@ write_switch_and_move ' ' "1.0" Left;
+    for_character 'b' @@ write_switch_and_move ' ' "1.1" Left;
+    for_characters "01" @@ switch_and_move "konec!" Left;
+  ]
+  |> for_state "right" [
+    for_characters "01ab" @@ move Right;
+    for_character ' ' @@ switch_and_move "preberi" Left
+  ]
+  |> for_state "1.0" [
+    for_characters "01ab" @@ move Left;
+    for_character ' ' @@ write_switch_and_move '0' "2.0" Left
+  ]
+  |> for_state "2.0" [
+    for_character ' ' @@ write_switch_and_move '0' "right" Right
+  ]
+  |> for_state "1.1" [
+    for_characters "01ab" @@ move Left;
+    for_character ' ' @@ write_switch_and_move '1' "2.1" Left
+  ]
+  |> for_state "2.1" [
+    for_character ' ' @@ write_switch_and_move '1' "right" Right
+  ]
+  |> for_state "konec!" [
+    for_characters "01" @@ move Left;
+    for_character ' ' @@ switch_and_move "done" Right
+  ]
 (*let primer_duplicate = speed_run duplicate "010011"*)
 (*
 001100001111       
@@ -421,9 +457,33 @@ let primer_reverse = slow_run reverse "0000111001"
  v dvojiškem zapisu, na koncu pa naj bo na traku zapisanih natanko $n$ enic.
 [*----------------------------------------------------------------------------*)
 
-(*let to_unary = ()*)
-
-(*let primer_to_unary = speed_run to_unary "1010"*)
+let to_unary = Machine.make "init" ["isci"; "najdel!"; "pisi"; "left"; "konec!"]
+  |> for_state "init" [
+    for_characters "01" @@ move Right;
+    for_character ' ' @@ write_switch_and_move 'c' "isci" Left
+  ]
+  |> for_state "isci" [
+    for_characters "0" @@ move Left;
+    for_character ' ' @@ switch_and_move "konec!" Right;
+    for_character '1' @@ write_switch_and_move '0' "najdel!" Right
+  ]
+  |> for_state "najdel!" [
+    for_character '0' @@ write_and_move '1' Right;
+    for_character 'c' @@ switch_and_move "pisi" Right
+  ]
+  |> for_state "pisi" [
+    for_characters "01c" @@ move Right;
+    for_character ' ' @@ write_switch_and_move '1' "left" Left;
+  ]
+  |> for_state "left" [
+    for_character '1' @@ move Left;
+    for_character 'c' @@ switch_and_move "isci" Left
+  ]
+  |> for_state "konec!" [
+    for_character '0' @@ write_and_move ' ' Right;
+    for_character 'c' @@ write_switch_and_move ' ' "done" Right
+  ]
+(*let primer_to_unary = slow_run to_unary "1010"*)
 (* 
 1111111111
 ^
@@ -440,8 +500,31 @@ let primer_reverse = slow_run reverse "0000111001"
  dvojiškem zapisu.
 [*----------------------------------------------------------------------------*)
 
-(*let to_binary = ()*)
-
+let to_binary = Machine.make "init" ["right"; "poglej"; "left"; "carry"; "konec!"; "done"]
+  |> for_state "init" [
+    for_character '1' @@ move Left;
+    for_character ' ' @@ write_switch_and_move 'c' "right" Right
+  ]
+  |> for_state "right" [
+    for_characters "01c" @@ move Right;
+    for_character ' ' @@ switch_and_move "poglej" Left
+  ]
+  |> for_state "poglej" [
+    for_character 'c' @@ write_switch_and_move ' ' "konec!" Left;
+    for_character '1' @@ write_switch_and_move ' ' "left" Left
+  ]
+  |> for_state "left" [
+    for_character '1' @@ move Left;
+    for_character 'c' @@ switch_and_move "carry" Left
+  ]
+  |> for_state "carry" [ (*ideja pobrana iz zgornjega primera binary_increment*)
+    for_character '1' @@ write_and_move '0' Left;  
+    for_characters "0 " @@ write_switch_and_move '1' "right" Right
+  ] 
+  |> for_state "konec!" [
+    for_characters "01" @@ move Left;
+    for_character ' ' @@ switch_and_move "done" Right
+  ]
 (*let primer_to_binary = speed_run to_binary (String.make 42 '1')*)
 (* 
 101010                                           
