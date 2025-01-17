@@ -101,7 +101,7 @@ let print tape = match tape with |(levi_sez, desni_sez) ->
       
 end
 
-(*let primer_trak = Tape.(
+(* let primer_trak = Tape.(
   make "ABCDE"
   |> move Left
   |> move Left
@@ -111,7 +111,7 @@ end
   |> move Right
   |> write '!'
   |> print
-)*)
+) *)
 (*
 AB!DE
   ^
@@ -226,8 +226,8 @@ let slow_run stroj niz =
   delaj stroj zac_st zac_tape
 
   
-(*let primer_slow_run =
-  slow_run binary_increment "1011"*)
+(* let primer_slow_run =
+  slow_run binary_increment "1011" *)
 (*
 1011
 ^
@@ -275,8 +275,8 @@ let speed_run stroj niz =
 
   
 
-(*let primer_speed_run =
-  speed_run binary_increment "1011"*)
+(* let primer_speed_run =
+  speed_run binary_increment "1011" *)
 (*
 1100
 ^
@@ -344,7 +344,7 @@ let binary_increment' =
   ]  
 (* val binary_increment' : Machine.t = <abstr> *)
 
-(*let primer_binary_increment' = slow_run binary_increment' "1011"*)
+(* let primer_binary_increment' = speed_run binary_increment' "1011" *)
 
 (*----------------------------------------------------------------------------*
  ## Primeri Turingovih strojev
@@ -393,7 +393,7 @@ let reverse =
     for_character ' ' @@ switch_and_move "done" Right
   ]
 
-(*let primer_reverse = slow_run reverse "0000111001"*)
+(* let primer_reverse = speed_run reverse "0000111001" *)
 (* 
 1001110000          
 ^
@@ -441,7 +441,7 @@ let duplicate = Machine.make "init" ["init"; "preberi"; "preberi"; "1.0"; "2.0";
     for_characters "01" @@ move Left;
     for_character ' ' @@ switch_and_move "done" Right
   ]
-(*let primer_duplicate = speed_run duplicate "010011"*)
+(* let primer_duplicate = speed_run duplicate "010011" *)
 (*
 001100001111       
 ^
@@ -483,7 +483,7 @@ let to_unary = Machine.make "init" ["isci"; "najdel!"; "pisi"; "left"; "konec!"]
     for_character '0' @@ write_and_move ' ' Right;
     for_character 'c' @@ write_switch_and_move ' ' "done" Right
   ]
-(*let primer_to_unary = slow_run to_unary "1010"*)
+(* let primer_to_unary = slow_run to_unary "1010" *)
 (* 
 1111111111
 ^
@@ -525,7 +525,7 @@ let to_binary = Machine.make "init" ["right"; "poglej"; "left"; "carry"; "konec!
     for_characters "01" @@ move Left;
     for_character ' ' @@ switch_and_move "done" Right
   ]
-(*let primer_to_binary = speed_run to_binary (String.make 42 '1')*)
+(* let primer_to_binary = speed_run to_binary (String.make 42 '1') *)
 (* 
 101010                                           
 ^
